@@ -1,0 +1,16 @@
+{
+  "name": "Uside Vibe",
+  "short_name": "Uside Vibe",
+  "description": "Transform designs into production-ready code with AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

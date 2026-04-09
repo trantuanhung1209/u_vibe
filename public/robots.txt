@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /projects/
+
+# Allow search engines to crawl important pages
+Allow: /$
+Allow: /pricing$
+Allow: /sign-in$
+Allow: /sign-up$
+
+# Sitemap
+Sitemap: https://uside-vibe.com/sitemap.xml
