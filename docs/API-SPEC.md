@@ -2,7 +2,7 @@
 
 ## Base Information
 
-- **Base URL**: `http://localhost:3000` (development) / `https://uside-vibe.com` (production)
+- **Base URL**: `http://localhost:3000` (development) / `https://vibe.uside.studio` (production)
 - **Protocol**: tRPC (type-safe RPC) + REST
 - **Authentication**: Clerk (JWT tokens in cookies)
 - **Content-Type**: `application/json`

@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://uside-vibe.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vibe.uside.studio";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

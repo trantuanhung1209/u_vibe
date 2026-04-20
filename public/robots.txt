@@ -10,4 +10,4 @@ Allow: /sign-in$
 Allow: /sign-up$
 
 # Sitemap
-Sitemap: https://uside-vibe.com/sitemap.xml
+Sitemap: https://vibe.uside.studio/sitemap.xml

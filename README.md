@@ -181,7 +181,7 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
 
 # Site URL (for production)
-NEXT_PUBLIC_SITE_URL="https://uside-vibe.com"
+NEXT_PUBLIC_SITE_URL="https://vibe.uside.studio"
 ```
 
 4. **Set up the database**:
