@@ -2,7 +2,7 @@ import {
   generateWebsiteSchema,
   generateOrganizationSchema,
   generateSoftwareAppSchema,
-} from "@/src/lib/metadata";
+} from "@/lib/metadata";
 
 export default function StructuredData() {
   const websiteSchema = generateWebsiteSchema();

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import "@/app/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { TRPCReactProvider } from "@/trpc/client";
-import { Toaster } from "@/components/ui/sonner";
+import { TRPCReactProvider } from "../trpc/client";
+// import { Toaster } from "../components/ui/sonner";
+import { Toaster } from "../components/ui/sonner";
 import { ThemeProvider as NextThemeProvider } from "next-themes";
-import { ThemeProvider } from "@/contexts/theme-context";
-import { FloatingThemeSwitcher } from "@/components/floating-theme-switcher";
-import { ClerkProviderWrapper } from "@/components/clerk-provider-wrapper";
-import StructuredData from "@/components/structured-data";
+import { ThemeProvider } from "../contexts/theme-context"; 
+import { FloatingThemeSwitcher } from "../components/floating-theme-switcher";
+import { ClerkProviderWrapper } from "../components/clerk-provider-wrapper";
+import StructuredData from "../components/structured-data";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

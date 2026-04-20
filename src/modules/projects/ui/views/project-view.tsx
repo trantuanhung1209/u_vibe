@@ -11,7 +11,7 @@ import { Fragment } from "@/generated/prisma/client";
 import { ProjectHeader } from "../components/project-header";
 import FragementWeb from "../components/fragment-web";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CodeIcon, CrownIcon, DownloadIcon, EyeIcon } from "lucide-react";
+import { CodeIcon, CrownIcon, DownloadIcon, EyeIcon, Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -31,6 +31,7 @@ export const ProjectView = ({ projectId }: Props) => {
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
   const [tabState, setTabState] = useState<"preview" | "code">("preview");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownload = async () => {
     if (!activeFragment) {
@@ -87,6 +88,7 @@ export const ProjectView = ({ projectId }: Props) => {
                   projectId={projectId}
                   activeFragment={activeFragment}
                   setActiveFragment={setActiveFragment}
+                  setIsGenerating={setIsGenerating}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -139,10 +141,30 @@ export const ProjectView = ({ projectId }: Props) => {
                   <UserControl />
                 </div>
               </div>
-              <TabsContent value="preview">
+              <TabsContent value="preview" className="h-full relative">
+                {isGenerating && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2Icon className="size-8 animate-spin text-primary" />
+                      <p className="text-sm font-medium text-muted-foreground animate-pulse">
+                        Building your app...
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {!!activeFragment && <FragementWeb data={activeFragment} />}
               </TabsContent>
-              <TabsContent value="code" className="min-h-0">
+              <TabsContent value="code" className="min-h-0 h-full relative">
+                 {isGenerating && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2Icon className="size-8 animate-spin text-primary" />
+                      <p className="text-sm font-medium text-muted-foreground animate-pulse">
+                        Writing code...
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {!!activeFragment?.files && (
                   <FileExplorer
                     files={activeFragment.files as { [path: string]: string }}

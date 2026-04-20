@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { cn } from "@/src/lib/util";
+import { cn } from "@/lib/utils";
 
 interface LogoProps {
   size?: number;

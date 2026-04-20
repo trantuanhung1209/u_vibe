@@ -11,12 +11,14 @@ interface Props {
   projectId: string;
   activeFragment: Fragment | null;
   setActiveFragment: (fragment: Fragment | null) => void;
+  setIsGenerating: (isGenerating: boolean) => void;
 }
 
 export const MessagesContainer = ({
   projectId,
   activeFragment,
   setActiveFragment,
+  setIsGenerating,
 }: Props) => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastAssistantMessageIdRef = useRef<string | null>(null);
@@ -32,8 +34,9 @@ export const MessagesContainer = ({
   );
 
   useEffect(() => {
-    const lastAssistantMessage = messages.findLast( 
-        (message) => message.role === "ASSISTANT"
+    const messagesList = Array.isArray(messages) ? messages : [];
+    const lastAssistantMessage = messagesList.findLast( 
+        (message: any) => message.role === "ASSISTANT"
     );
 
     if (
@@ -46,11 +49,17 @@ export const MessagesContainer = ({
   }, [messages, setActiveFragment]);
 
   useEffect(() => {
+    const messagesList = Array.isArray(messages) ? messages : [];
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages]);
 
-  const lastMessage = messages[messages.length - 1];
-  const isLastMessageFromUser = lastMessage?.role === "USER";
+  const messagesList = Array.isArray(messages) ? messages : [];
+  const lastMessage = messagesList[messagesList.length - 1];
+  const isLastMessageFromUser = (lastMessage as any)?.role === "USER";
+
+  useEffect(() => {
+    setIsGenerating(isLastMessageFromUser);
+  }, [isLastMessageFromUser, setIsGenerating]);
 
   return (
     <>
