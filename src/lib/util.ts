@@ -1,4 +1,4 @@
-import { type TreeItem } from "@/src/types/types";
+import { type TreeItem } from "@/src/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
