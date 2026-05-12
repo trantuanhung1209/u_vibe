@@ -5,6 +5,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { generateMetadata as generateSEOMetadata } from "@/lib/metadata";
+import prisma from "@/lib/db";
 
 interface Props {
   params: Promise<{
@@ -14,9 +15,16 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { projectId } = await params;
-  
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { name: true },
+  });
+
+  const title = project?.name || `Project ${projectId.slice(0, 8)}`;
+
   return generateSEOMetadata({
-    title: `Project ${projectId.slice(0, 8)} - Code Editor`,
+    title: `${title} - Code Editor`,
     description:
       "View and edit your AI-generated code in real-time. Collaborate with AI to build better applications faster.",
     path: `/projects/${projectId}`,
