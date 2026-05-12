@@ -149,6 +149,19 @@ export const messagesRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
       }
 
+      const lastMessage = await prisma.message.findFirst({
+        where: { projectId: input.projectId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (
+        lastMessage?.role === "ASSISTANT" &&
+        lastMessage?.type === "ERROR" &&
+        lastMessage?.content === "Generation stopped by user."
+      ) {
+        await prisma.message.delete({ where: { id: lastMessage.id } });
+      }
+
       const lastUserMessage = await prisma.message.findFirst({
         where: {
           projectId: input.projectId,
