@@ -22,7 +22,15 @@ interface AgentState{
 }
 
 export const codeAgentFunction = inngest.createFunction(
-    { id: "code-agent"},
+    {
+        id: "code-agent",
+        cancelOn: [
+            {
+                event: "code-agent/cancel",
+                if: "async.data.projectId == event.data.projectId",
+            },
+        ],
+    },
     {event : "code-agent/run"},
     async({event , step}) => {
         console.log("===== INNGEST RECEIVED =====");

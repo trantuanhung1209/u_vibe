@@ -89,4 +89,91 @@ export const messagesRouter = createTRPCRouter({
 
       return createdMessage;
     }),
+
+  stop: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: "Project ID is required" }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const existingProject = await prisma.project.findUnique({
+        where: { id: input.projectId, userId: ctx.auth.userId },
+      });
+
+      if (!existingProject) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+      }
+
+      const lastMessage = await prisma.message.findFirst({
+        where: { projectId: input.projectId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!lastMessage || lastMessage.role !== "USER") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active generation to stop",
+        });
+      }
+
+      await inngest.send({
+        name: "code-agent/cancel",
+        data: { projectId: input.projectId },
+      });
+
+      const stoppedMessage = await prisma.message.create({
+        data: {
+          content: "Generation stopped by user.",
+          role: "ASSISTANT",
+          type: "ERROR",
+          projectId: input.projectId,
+        },
+      });
+
+      return stoppedMessage;
+    }),
+
+  continueGeneration: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: "Project ID is required" }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const existingProject = await prisma.project.findUnique({
+        where: { id: input.projectId, userId: ctx.auth.userId },
+      });
+
+      if (!existingProject) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+      }
+
+      const lastUserMessage = await prisma.message.findFirst({
+        where: {
+          projectId: input.projectId,
+          role: "USER",
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!lastUserMessage) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No previous message to continue from",
+        });
+      }
+
+      await inngest.send({
+        name: "code-agent/run",
+        data: {
+          value: lastUserMessage.content,
+          projectId: input.projectId,
+          messageId: lastUserMessage.id,
+          hasImage: lastUserMessage.hasImage,
+        },
+      });
+
+      return { success: true };
+    }),
 });
