@@ -56,7 +56,7 @@
     "dotenv": "^17.2.3",
     "embla-carousel-react": "^8.6.0",
     "figma-api": "^2.1.0-beta",
-    "inngest": "^3.48.1",
+    "inngest": "^3.54.2",
     "input-otp": "^1.4.2",
     "jszip": "^3.10.1",
     "lucide-react": "^0.562.0",
