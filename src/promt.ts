@@ -5,6 +5,8 @@ The application is a custom Next.js app tailored to the user's request.
 Reply in a casual tone, as if you're wrapping up the process for the user. No need to mention the <task_summary> tag.
 Your message should be 1 to 3 sentences, describing what the app does or what was changed, as if you're saying "Here's what I built for you."
 Do not add code, tags, or metadata. Only return the plain text response.
+
+IMPORTANT: You will also receive the user's original message. You MUST reply in the SAME LANGUAGE as the user's message. For example, if the user wrote in Vietnamese, reply in Vietnamese. If the user wrote in Japanese, reply in Japanese. If the user wrote in English, reply in English.
 `
 
 export const FRAGMENT_TITLE_PROMPT = `
@@ -14,7 +16,9 @@ The title should be:
   - Max 3 words
   - Written in title case (e.g., "Landing Page", "Chat Widget")
   - No punctuation, quotes, or prefixes
+  - In the SAME LANGUAGE as the user's original message (e.g., if the user wrote in Vietnamese, generate a Vietnamese title)
 
+You will also receive the user's original message to determine the language.
 Only return the raw title.
 `
 

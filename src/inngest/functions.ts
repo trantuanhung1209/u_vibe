@@ -304,12 +304,15 @@ export const codeAgentFunction = inngest.createFunction(
             }),
         });
 
+        const userMessage = event.data.value;
+        const summaryWithUserMessage = `User's original message: ${userMessage}\n\n${result.state.data.summary}`;
+
         const {output: fragmentTitleOutput} = await fragmentTitleGenerator.run(
-            result.state.data.summary
+            summaryWithUserMessage
         );
 
         const {output: responseOutput} = await responseGenerator.run(
-            result.state.data.summary
+            summaryWithUserMessage
         );
 
         const isError =
