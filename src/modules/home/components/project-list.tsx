@@ -49,15 +49,15 @@ export const ProjectList = () => {
               asChild
             >
               <Link href={`/projects/${project.id}`}>
-                <div className="flex items-center gap-x-4">
+                <div className="flex items-center gap-x-4 overflow-hidden">
                   <Image
                     src="/cloud_vibe.png"
                     alt="Vibe"
                     width={40}
                     height={40}
-                    className="object-contain"
+                    className="object-contain shrink-0"
                   />
-                   <div className="flex flex-col">
+                   <div className="flex flex-col min-w-0">
                     <h3 className="truncate font-medium">
                         {project.name}
                     </h3>
