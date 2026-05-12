@@ -3,7 +3,7 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { MessageCard } from "./message-card";
 import { MessageForm } from "./message-form";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Fragment } from "@/generated/prisma/client";
 import { MessageLoading } from "./message-loading";
 
@@ -14,6 +14,8 @@ interface Props {
   setIsGenerating: (isGenerating: boolean) => void;
 }
 
+const SCROLL_BOTTOM_THRESHOLD = 100;
+
 export const MessagesContainer = ({
   projectId,
   activeFragment,
@@ -21,7 +23,10 @@ export const MessagesContainer = ({
   setIsGenerating,
 }: Props) => {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastAssistantMessageIdRef = useRef<string | null>(null);
+  const isUserNearBottomRef = useRef(true);
+  const prevMessageCountRef = useRef(0);
 
   const trpc = useTRPC();
   const { data: messages } = useSuspenseQuery(
@@ -32,6 +37,21 @@ export const MessagesContainer = ({
       }
     )
   );
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    isUserNearBottomRef.current = distanceFromBottom < SCROLL_BOTTOM_THRESHOLD;
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   useEffect(() => {
     const messagesList = Array.isArray(messages) ? messages : [];
@@ -50,7 +70,19 @@ export const MessagesContainer = ({
 
   useEffect(() => {
     const messagesList = Array.isArray(messages) ? messages : [];
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const currentCount = messagesList.length;
+    const hasNewMessages = currentCount > prevMessageCountRef.current;
+
+    if (hasNewMessages) {
+      const lastMsg = messagesList[currentCount - 1];
+      const isFromUser = lastMsg?.role === "USER";
+
+      if (isFromUser || isUserNearBottomRef.current) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    prevMessageCountRef.current = currentCount;
   }, [messages]);
 
   const messagesList = Array.isArray(messages) ? messages : [];
@@ -64,7 +96,10 @@ export const MessagesContainer = ({
   return (
     <>
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 min-h-0 overflow-auto"
+        >
           <div className="pt-2 pr-1">
             {Array.isArray(messages) &&
               messages.map((message) => (
