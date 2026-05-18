@@ -158,6 +158,23 @@ exports.Prisma.UsageScalarFieldEnum = {
   expire: 'expire'
 };
 
+exports.Prisma.CreditPaymentScalarFieldEnum = {
+  id: 'id',
+  orderCode: 'orderCode',
+  userId: 'userId',
+  amount: 'amount',
+  credits: 'credits',
+  description: 'description',
+  status: 'status',
+  paymentLinkId: 'paymentLinkId',
+  checkoutUrl: 'checkoutUrl',
+  payosStatus: 'payosStatus',
+  rawData: 'rawData',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -197,11 +214,20 @@ exports.MessageType = exports.$Enums.MessageType = {
   ERROR: 'ERROR'
 };
 
+exports.CreditPaymentStatus = exports.$Enums.CreditPaymentStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+};
+
 exports.Prisma.ModelName = {
   Project: 'Project',
   Message: 'Message',
   Fragment: 'Fragment',
-  Usage: 'Usage'
+  Usage: 'Usage',
+  CreditPayment: 'CreditPayment'
 };
 
 /**

@@ -33,6 +33,11 @@ export type Fragment = $Result.DefaultSelection<Prisma.$FragmentPayload>
  * 
  */
 export type Usage = $Result.DefaultSelection<Prisma.$UsagePayload>
+/**
+ * Model CreditPayment
+ * 
+ */
+export type CreditPayment = $Result.DefaultSelection<Prisma.$CreditPaymentPayload>
 
 /**
  * Enums
@@ -53,6 +58,17 @@ export const MessageType: {
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]
 
+
+export const CreditPaymentStatus: {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+};
+
+export type CreditPaymentStatus = (typeof CreditPaymentStatus)[keyof typeof CreditPaymentStatus]
+
 }
 
 export type MessageRole = $Enums.MessageRole
@@ -62,6 +78,10 @@ export const MessageRole: typeof $Enums.MessageRole
 export type MessageType = $Enums.MessageType
 
 export const MessageType: typeof $Enums.MessageType
+
+export type CreditPaymentStatus = $Enums.CreditPaymentStatus
+
+export const CreditPaymentStatus: typeof $Enums.CreditPaymentStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -220,6 +240,16 @@ export class PrismaClient<
     * ```
     */
   get usage(): Prisma.UsageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.creditPayment`: Exposes CRUD operations for the **CreditPayment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CreditPayments
+    * const creditPayments = await prisma.creditPayment.findMany()
+    * ```
+    */
+  get creditPayment(): Prisma.CreditPaymentDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -664,7 +694,8 @@ export namespace Prisma {
     Project: 'Project',
     Message: 'Message',
     Fragment: 'Fragment',
-    Usage: 'Usage'
+    Usage: 'Usage',
+    CreditPayment: 'CreditPayment'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -683,7 +714,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "project" | "message" | "fragment" | "usage"
+      modelProps: "project" | "message" | "fragment" | "usage" | "creditPayment"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -983,6 +1014,80 @@ export namespace Prisma {
           }
         }
       }
+      CreditPayment: {
+        payload: Prisma.$CreditPaymentPayload<ExtArgs>
+        fields: Prisma.CreditPaymentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CreditPaymentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CreditPaymentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          findFirst: {
+            args: Prisma.CreditPaymentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CreditPaymentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          findMany: {
+            args: Prisma.CreditPaymentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>[]
+          }
+          create: {
+            args: Prisma.CreditPaymentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          createMany: {
+            args: Prisma.CreditPaymentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CreditPaymentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>[]
+          }
+          delete: {
+            args: Prisma.CreditPaymentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          update: {
+            args: Prisma.CreditPaymentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          deleteMany: {
+            args: Prisma.CreditPaymentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CreditPaymentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CreditPaymentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>[]
+          }
+          upsert: {
+            args: Prisma.CreditPaymentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditPaymentPayload>
+          }
+          aggregate: {
+            args: Prisma.CreditPaymentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCreditPayment>
+          }
+          groupBy: {
+            args: Prisma.CreditPaymentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CreditPaymentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CreditPaymentCountArgs<ExtArgs>
+            result: $Utils.Optional<CreditPaymentCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1083,6 +1188,7 @@ export namespace Prisma {
     message?: MessageOmit
     fragment?: FragmentOmit
     usage?: UsageOmit
+    creditPayment?: CreditPaymentOmit
   }
 
   /* Types for Logging */
@@ -5489,6 +5595,1156 @@ export namespace Prisma {
 
 
   /**
+   * Model CreditPayment
+   */
+
+  export type AggregateCreditPayment = {
+    _count: CreditPaymentCountAggregateOutputType | null
+    _avg: CreditPaymentAvgAggregateOutputType | null
+    _sum: CreditPaymentSumAggregateOutputType | null
+    _min: CreditPaymentMinAggregateOutputType | null
+    _max: CreditPaymentMaxAggregateOutputType | null
+  }
+
+  export type CreditPaymentAvgAggregateOutputType = {
+    orderCode: number | null
+    amount: number | null
+    credits: number | null
+  }
+
+  export type CreditPaymentSumAggregateOutputType = {
+    orderCode: bigint | null
+    amount: number | null
+    credits: number | null
+  }
+
+  export type CreditPaymentMinAggregateOutputType = {
+    id: string | null
+    orderCode: bigint | null
+    userId: string | null
+    amount: number | null
+    credits: number | null
+    description: string | null
+    status: $Enums.CreditPaymentStatus | null
+    paymentLinkId: string | null
+    checkoutUrl: string | null
+    payosStatus: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CreditPaymentMaxAggregateOutputType = {
+    id: string | null
+    orderCode: bigint | null
+    userId: string | null
+    amount: number | null
+    credits: number | null
+    description: string | null
+    status: $Enums.CreditPaymentStatus | null
+    paymentLinkId: string | null
+    checkoutUrl: string | null
+    payosStatus: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CreditPaymentCountAggregateOutputType = {
+    id: number
+    orderCode: number
+    userId: number
+    amount: number
+    credits: number
+    description: number
+    status: number
+    paymentLinkId: number
+    checkoutUrl: number
+    payosStatus: number
+    rawData: number
+    paidAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CreditPaymentAvgAggregateInputType = {
+    orderCode?: true
+    amount?: true
+    credits?: true
+  }
+
+  export type CreditPaymentSumAggregateInputType = {
+    orderCode?: true
+    amount?: true
+    credits?: true
+  }
+
+  export type CreditPaymentMinAggregateInputType = {
+    id?: true
+    orderCode?: true
+    userId?: true
+    amount?: true
+    credits?: true
+    description?: true
+    status?: true
+    paymentLinkId?: true
+    checkoutUrl?: true
+    payosStatus?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CreditPaymentMaxAggregateInputType = {
+    id?: true
+    orderCode?: true
+    userId?: true
+    amount?: true
+    credits?: true
+    description?: true
+    status?: true
+    paymentLinkId?: true
+    checkoutUrl?: true
+    payosStatus?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CreditPaymentCountAggregateInputType = {
+    id?: true
+    orderCode?: true
+    userId?: true
+    amount?: true
+    credits?: true
+    description?: true
+    status?: true
+    paymentLinkId?: true
+    checkoutUrl?: true
+    payosStatus?: true
+    rawData?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CreditPaymentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditPayment to aggregate.
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditPayments to fetch.
+     */
+    orderBy?: CreditPaymentOrderByWithRelationInput | CreditPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CreditPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CreditPayments
+    **/
+    _count?: true | CreditPaymentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CreditPaymentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CreditPaymentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CreditPaymentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CreditPaymentMaxAggregateInputType
+  }
+
+  export type GetCreditPaymentAggregateType<T extends CreditPaymentAggregateArgs> = {
+        [P in keyof T & keyof AggregateCreditPayment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCreditPayment[P]>
+      : GetScalarType<T[P], AggregateCreditPayment[P]>
+  }
+
+
+
+
+  export type CreditPaymentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CreditPaymentWhereInput
+    orderBy?: CreditPaymentOrderByWithAggregationInput | CreditPaymentOrderByWithAggregationInput[]
+    by: CreditPaymentScalarFieldEnum[] | CreditPaymentScalarFieldEnum
+    having?: CreditPaymentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CreditPaymentCountAggregateInputType | true
+    _avg?: CreditPaymentAvgAggregateInputType
+    _sum?: CreditPaymentSumAggregateInputType
+    _min?: CreditPaymentMinAggregateInputType
+    _max?: CreditPaymentMaxAggregateInputType
+  }
+
+  export type CreditPaymentGroupByOutputType = {
+    id: string
+    orderCode: bigint
+    userId: string
+    amount: number
+    credits: number
+    description: string
+    status: $Enums.CreditPaymentStatus
+    paymentLinkId: string | null
+    checkoutUrl: string | null
+    payosStatus: string | null
+    rawData: JsonValue | null
+    paidAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CreditPaymentCountAggregateOutputType | null
+    _avg: CreditPaymentAvgAggregateOutputType | null
+    _sum: CreditPaymentSumAggregateOutputType | null
+    _min: CreditPaymentMinAggregateOutputType | null
+    _max: CreditPaymentMaxAggregateOutputType | null
+  }
+
+  type GetCreditPaymentGroupByPayload<T extends CreditPaymentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CreditPaymentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CreditPaymentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CreditPaymentGroupByOutputType[P]>
+            : GetScalarType<T[P], CreditPaymentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CreditPaymentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderCode?: boolean
+    userId?: boolean
+    amount?: boolean
+    credits?: boolean
+    description?: boolean
+    status?: boolean
+    paymentLinkId?: boolean
+    checkoutUrl?: boolean
+    payosStatus?: boolean
+    rawData?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditPayment"]>
+
+  export type CreditPaymentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderCode?: boolean
+    userId?: boolean
+    amount?: boolean
+    credits?: boolean
+    description?: boolean
+    status?: boolean
+    paymentLinkId?: boolean
+    checkoutUrl?: boolean
+    payosStatus?: boolean
+    rawData?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditPayment"]>
+
+  export type CreditPaymentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderCode?: boolean
+    userId?: boolean
+    amount?: boolean
+    credits?: boolean
+    description?: boolean
+    status?: boolean
+    paymentLinkId?: boolean
+    checkoutUrl?: boolean
+    payosStatus?: boolean
+    rawData?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditPayment"]>
+
+  export type CreditPaymentSelectScalar = {
+    id?: boolean
+    orderCode?: boolean
+    userId?: boolean
+    amount?: boolean
+    credits?: boolean
+    description?: boolean
+    status?: boolean
+    paymentLinkId?: boolean
+    checkoutUrl?: boolean
+    payosStatus?: boolean
+    rawData?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CreditPaymentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderCode" | "userId" | "amount" | "credits" | "description" | "status" | "paymentLinkId" | "checkoutUrl" | "payosStatus" | "rawData" | "paidAt" | "createdAt" | "updatedAt", ExtArgs["result"]["creditPayment"]>
+
+  export type $CreditPaymentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CreditPayment"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderCode: bigint
+      userId: string
+      amount: number
+      credits: number
+      description: string
+      status: $Enums.CreditPaymentStatus
+      paymentLinkId: string | null
+      checkoutUrl: string | null
+      payosStatus: string | null
+      rawData: Prisma.JsonValue | null
+      paidAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["creditPayment"]>
+    composites: {}
+  }
+
+  type CreditPaymentGetPayload<S extends boolean | null | undefined | CreditPaymentDefaultArgs> = $Result.GetResult<Prisma.$CreditPaymentPayload, S>
+
+  type CreditPaymentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CreditPaymentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CreditPaymentCountAggregateInputType | true
+    }
+
+  export interface CreditPaymentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CreditPayment'], meta: { name: 'CreditPayment' } }
+    /**
+     * Find zero or one CreditPayment that matches the filter.
+     * @param {CreditPaymentFindUniqueArgs} args - Arguments to find a CreditPayment
+     * @example
+     * // Get one CreditPayment
+     * const creditPayment = await prisma.creditPayment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CreditPaymentFindUniqueArgs>(args: SelectSubset<T, CreditPaymentFindUniqueArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CreditPayment that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CreditPaymentFindUniqueOrThrowArgs} args - Arguments to find a CreditPayment
+     * @example
+     * // Get one CreditPayment
+     * const creditPayment = await prisma.creditPayment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CreditPaymentFindUniqueOrThrowArgs>(args: SelectSubset<T, CreditPaymentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditPayment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentFindFirstArgs} args - Arguments to find a CreditPayment
+     * @example
+     * // Get one CreditPayment
+     * const creditPayment = await prisma.creditPayment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CreditPaymentFindFirstArgs>(args?: SelectSubset<T, CreditPaymentFindFirstArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditPayment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentFindFirstOrThrowArgs} args - Arguments to find a CreditPayment
+     * @example
+     * // Get one CreditPayment
+     * const creditPayment = await prisma.creditPayment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CreditPaymentFindFirstOrThrowArgs>(args?: SelectSubset<T, CreditPaymentFindFirstOrThrowArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CreditPayments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CreditPayments
+     * const creditPayments = await prisma.creditPayment.findMany()
+     * 
+     * // Get first 10 CreditPayments
+     * const creditPayments = await prisma.creditPayment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const creditPaymentWithIdOnly = await prisma.creditPayment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CreditPaymentFindManyArgs>(args?: SelectSubset<T, CreditPaymentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CreditPayment.
+     * @param {CreditPaymentCreateArgs} args - Arguments to create a CreditPayment.
+     * @example
+     * // Create one CreditPayment
+     * const CreditPayment = await prisma.creditPayment.create({
+     *   data: {
+     *     // ... data to create a CreditPayment
+     *   }
+     * })
+     * 
+     */
+    create<T extends CreditPaymentCreateArgs>(args: SelectSubset<T, CreditPaymentCreateArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CreditPayments.
+     * @param {CreditPaymentCreateManyArgs} args - Arguments to create many CreditPayments.
+     * @example
+     * // Create many CreditPayments
+     * const creditPayment = await prisma.creditPayment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CreditPaymentCreateManyArgs>(args?: SelectSubset<T, CreditPaymentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CreditPayments and returns the data saved in the database.
+     * @param {CreditPaymentCreateManyAndReturnArgs} args - Arguments to create many CreditPayments.
+     * @example
+     * // Create many CreditPayments
+     * const creditPayment = await prisma.creditPayment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CreditPayments and only return the `id`
+     * const creditPaymentWithIdOnly = await prisma.creditPayment.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CreditPaymentCreateManyAndReturnArgs>(args?: SelectSubset<T, CreditPaymentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CreditPayment.
+     * @param {CreditPaymentDeleteArgs} args - Arguments to delete one CreditPayment.
+     * @example
+     * // Delete one CreditPayment
+     * const CreditPayment = await prisma.creditPayment.delete({
+     *   where: {
+     *     // ... filter to delete one CreditPayment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CreditPaymentDeleteArgs>(args: SelectSubset<T, CreditPaymentDeleteArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CreditPayment.
+     * @param {CreditPaymentUpdateArgs} args - Arguments to update one CreditPayment.
+     * @example
+     * // Update one CreditPayment
+     * const creditPayment = await prisma.creditPayment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CreditPaymentUpdateArgs>(args: SelectSubset<T, CreditPaymentUpdateArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CreditPayments.
+     * @param {CreditPaymentDeleteManyArgs} args - Arguments to filter CreditPayments to delete.
+     * @example
+     * // Delete a few CreditPayments
+     * const { count } = await prisma.creditPayment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CreditPaymentDeleteManyArgs>(args?: SelectSubset<T, CreditPaymentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditPayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CreditPayments
+     * const creditPayment = await prisma.creditPayment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CreditPaymentUpdateManyArgs>(args: SelectSubset<T, CreditPaymentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditPayments and returns the data updated in the database.
+     * @param {CreditPaymentUpdateManyAndReturnArgs} args - Arguments to update many CreditPayments.
+     * @example
+     * // Update many CreditPayments
+     * const creditPayment = await prisma.creditPayment.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CreditPayments and only return the `id`
+     * const creditPaymentWithIdOnly = await prisma.creditPayment.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CreditPaymentUpdateManyAndReturnArgs>(args: SelectSubset<T, CreditPaymentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CreditPayment.
+     * @param {CreditPaymentUpsertArgs} args - Arguments to update or create a CreditPayment.
+     * @example
+     * // Update or create a CreditPayment
+     * const creditPayment = await prisma.creditPayment.upsert({
+     *   create: {
+     *     // ... data to create a CreditPayment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CreditPayment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CreditPaymentUpsertArgs>(args: SelectSubset<T, CreditPaymentUpsertArgs<ExtArgs>>): Prisma__CreditPaymentClient<$Result.GetResult<Prisma.$CreditPaymentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CreditPayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentCountArgs} args - Arguments to filter CreditPayments to count.
+     * @example
+     * // Count the number of CreditPayments
+     * const count = await prisma.creditPayment.count({
+     *   where: {
+     *     // ... the filter for the CreditPayments we want to count
+     *   }
+     * })
+    **/
+    count<T extends CreditPaymentCountArgs>(
+      args?: Subset<T, CreditPaymentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CreditPaymentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CreditPayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CreditPaymentAggregateArgs>(args: Subset<T, CreditPaymentAggregateArgs>): Prisma.PrismaPromise<GetCreditPaymentAggregateType<T>>
+
+    /**
+     * Group by CreditPayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditPaymentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CreditPaymentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CreditPaymentGroupByArgs['orderBy'] }
+        : { orderBy?: CreditPaymentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CreditPaymentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCreditPaymentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CreditPayment model
+   */
+  readonly fields: CreditPaymentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CreditPayment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CreditPaymentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CreditPayment model
+   */
+  interface CreditPaymentFieldRefs {
+    readonly id: FieldRef<"CreditPayment", 'String'>
+    readonly orderCode: FieldRef<"CreditPayment", 'BigInt'>
+    readonly userId: FieldRef<"CreditPayment", 'String'>
+    readonly amount: FieldRef<"CreditPayment", 'Int'>
+    readonly credits: FieldRef<"CreditPayment", 'Int'>
+    readonly description: FieldRef<"CreditPayment", 'String'>
+    readonly status: FieldRef<"CreditPayment", 'CreditPaymentStatus'>
+    readonly paymentLinkId: FieldRef<"CreditPayment", 'String'>
+    readonly checkoutUrl: FieldRef<"CreditPayment", 'String'>
+    readonly payosStatus: FieldRef<"CreditPayment", 'String'>
+    readonly rawData: FieldRef<"CreditPayment", 'Json'>
+    readonly paidAt: FieldRef<"CreditPayment", 'DateTime'>
+    readonly createdAt: FieldRef<"CreditPayment", 'DateTime'>
+    readonly updatedAt: FieldRef<"CreditPayment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CreditPayment findUnique
+   */
+  export type CreditPaymentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditPayment to fetch.
+     */
+    where: CreditPaymentWhereUniqueInput
+  }
+
+  /**
+   * CreditPayment findUniqueOrThrow
+   */
+  export type CreditPaymentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditPayment to fetch.
+     */
+    where: CreditPaymentWhereUniqueInput
+  }
+
+  /**
+   * CreditPayment findFirst
+   */
+  export type CreditPaymentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditPayment to fetch.
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditPayments to fetch.
+     */
+    orderBy?: CreditPaymentOrderByWithRelationInput | CreditPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditPayments.
+     */
+    cursor?: CreditPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditPayments.
+     */
+    distinct?: CreditPaymentScalarFieldEnum | CreditPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * CreditPayment findFirstOrThrow
+   */
+  export type CreditPaymentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditPayment to fetch.
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditPayments to fetch.
+     */
+    orderBy?: CreditPaymentOrderByWithRelationInput | CreditPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditPayments.
+     */
+    cursor?: CreditPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditPayments.
+     */
+    distinct?: CreditPaymentScalarFieldEnum | CreditPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * CreditPayment findMany
+   */
+  export type CreditPaymentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditPayments to fetch.
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditPayments to fetch.
+     */
+    orderBy?: CreditPaymentOrderByWithRelationInput | CreditPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CreditPayments.
+     */
+    cursor?: CreditPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditPayments.
+     */
+    skip?: number
+    distinct?: CreditPaymentScalarFieldEnum | CreditPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * CreditPayment create
+   */
+  export type CreditPaymentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * The data needed to create a CreditPayment.
+     */
+    data: XOR<CreditPaymentCreateInput, CreditPaymentUncheckedCreateInput>
+  }
+
+  /**
+   * CreditPayment createMany
+   */
+  export type CreditPaymentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CreditPayments.
+     */
+    data: CreditPaymentCreateManyInput | CreditPaymentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CreditPayment createManyAndReturn
+   */
+  export type CreditPaymentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * The data used to create many CreditPayments.
+     */
+    data: CreditPaymentCreateManyInput | CreditPaymentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CreditPayment update
+   */
+  export type CreditPaymentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * The data needed to update a CreditPayment.
+     */
+    data: XOR<CreditPaymentUpdateInput, CreditPaymentUncheckedUpdateInput>
+    /**
+     * Choose, which CreditPayment to update.
+     */
+    where: CreditPaymentWhereUniqueInput
+  }
+
+  /**
+   * CreditPayment updateMany
+   */
+  export type CreditPaymentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CreditPayments.
+     */
+    data: XOR<CreditPaymentUpdateManyMutationInput, CreditPaymentUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditPayments to update
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * Limit how many CreditPayments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditPayment updateManyAndReturn
+   */
+  export type CreditPaymentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * The data used to update CreditPayments.
+     */
+    data: XOR<CreditPaymentUpdateManyMutationInput, CreditPaymentUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditPayments to update
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * Limit how many CreditPayments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditPayment upsert
+   */
+  export type CreditPaymentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * The filter to search for the CreditPayment to update in case it exists.
+     */
+    where: CreditPaymentWhereUniqueInput
+    /**
+     * In case the CreditPayment found by the `where` argument doesn't exist, create a new CreditPayment with this data.
+     */
+    create: XOR<CreditPaymentCreateInput, CreditPaymentUncheckedCreateInput>
+    /**
+     * In case the CreditPayment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CreditPaymentUpdateInput, CreditPaymentUncheckedUpdateInput>
+  }
+
+  /**
+   * CreditPayment delete
+   */
+  export type CreditPaymentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+    /**
+     * Filter which CreditPayment to delete.
+     */
+    where: CreditPaymentWhereUniqueInput
+  }
+
+  /**
+   * CreditPayment deleteMany
+   */
+  export type CreditPaymentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditPayments to delete
+     */
+    where?: CreditPaymentWhereInput
+    /**
+     * Limit how many CreditPayments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditPayment without action
+   */
+  export type CreditPaymentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditPayment
+     */
+    select?: CreditPaymentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditPayment
+     */
+    omit?: CreditPaymentOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -5549,6 +6805,26 @@ export namespace Prisma {
   };
 
   export type UsageScalarFieldEnum = (typeof UsageScalarFieldEnum)[keyof typeof UsageScalarFieldEnum]
+
+
+  export const CreditPaymentScalarFieldEnum: {
+    id: 'id',
+    orderCode: 'orderCode',
+    userId: 'userId',
+    amount: 'amount',
+    credits: 'credits',
+    description: 'description',
+    status: 'status',
+    paymentLinkId: 'paymentLinkId',
+    checkoutUrl: 'checkoutUrl',
+    payosStatus: 'payosStatus',
+    rawData: 'rawData',
+    paidAt: 'paidAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CreditPaymentScalarFieldEnum = (typeof CreditPaymentScalarFieldEnum)[keyof typeof CreditPaymentScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -5692,6 +6968,34 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt'
+   */
+  export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt[]'
+   */
+  export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CreditPaymentStatus'
+   */
+  export type EnumCreditPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CreditPaymentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CreditPaymentStatus[]'
+   */
+  export type ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CreditPaymentStatus[]'>
     
 
 
@@ -5959,6 +7263,105 @@ export namespace Prisma {
     expire?: DateTimeNullableWithAggregatesFilter<"Usage"> | Date | string | null
   }
 
+  export type CreditPaymentWhereInput = {
+    AND?: CreditPaymentWhereInput | CreditPaymentWhereInput[]
+    OR?: CreditPaymentWhereInput[]
+    NOT?: CreditPaymentWhereInput | CreditPaymentWhereInput[]
+    id?: StringFilter<"CreditPayment"> | string
+    orderCode?: BigIntFilter<"CreditPayment"> | bigint | number
+    userId?: StringFilter<"CreditPayment"> | string
+    amount?: IntFilter<"CreditPayment"> | number
+    credits?: IntFilter<"CreditPayment"> | number
+    description?: StringFilter<"CreditPayment"> | string
+    status?: EnumCreditPaymentStatusFilter<"CreditPayment"> | $Enums.CreditPaymentStatus
+    paymentLinkId?: StringNullableFilter<"CreditPayment"> | string | null
+    checkoutUrl?: StringNullableFilter<"CreditPayment"> | string | null
+    payosStatus?: StringNullableFilter<"CreditPayment"> | string | null
+    rawData?: JsonNullableFilter<"CreditPayment">
+    paidAt?: DateTimeNullableFilter<"CreditPayment"> | Date | string | null
+    createdAt?: DateTimeFilter<"CreditPayment"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditPayment"> | Date | string
+  }
+
+  export type CreditPaymentOrderByWithRelationInput = {
+    id?: SortOrder
+    orderCode?: SortOrder
+    userId?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    paymentLinkId?: SortOrderInput | SortOrder
+    checkoutUrl?: SortOrderInput | SortOrder
+    payosStatus?: SortOrderInput | SortOrder
+    rawData?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditPaymentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderCode?: bigint | number
+    AND?: CreditPaymentWhereInput | CreditPaymentWhereInput[]
+    OR?: CreditPaymentWhereInput[]
+    NOT?: CreditPaymentWhereInput | CreditPaymentWhereInput[]
+    userId?: StringFilter<"CreditPayment"> | string
+    amount?: IntFilter<"CreditPayment"> | number
+    credits?: IntFilter<"CreditPayment"> | number
+    description?: StringFilter<"CreditPayment"> | string
+    status?: EnumCreditPaymentStatusFilter<"CreditPayment"> | $Enums.CreditPaymentStatus
+    paymentLinkId?: StringNullableFilter<"CreditPayment"> | string | null
+    checkoutUrl?: StringNullableFilter<"CreditPayment"> | string | null
+    payosStatus?: StringNullableFilter<"CreditPayment"> | string | null
+    rawData?: JsonNullableFilter<"CreditPayment">
+    paidAt?: DateTimeNullableFilter<"CreditPayment"> | Date | string | null
+    createdAt?: DateTimeFilter<"CreditPayment"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditPayment"> | Date | string
+  }, "id" | "orderCode">
+
+  export type CreditPaymentOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderCode?: SortOrder
+    userId?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    paymentLinkId?: SortOrderInput | SortOrder
+    checkoutUrl?: SortOrderInput | SortOrder
+    payosStatus?: SortOrderInput | SortOrder
+    rawData?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CreditPaymentCountOrderByAggregateInput
+    _avg?: CreditPaymentAvgOrderByAggregateInput
+    _max?: CreditPaymentMaxOrderByAggregateInput
+    _min?: CreditPaymentMinOrderByAggregateInput
+    _sum?: CreditPaymentSumOrderByAggregateInput
+  }
+
+  export type CreditPaymentScalarWhereWithAggregatesInput = {
+    AND?: CreditPaymentScalarWhereWithAggregatesInput | CreditPaymentScalarWhereWithAggregatesInput[]
+    OR?: CreditPaymentScalarWhereWithAggregatesInput[]
+    NOT?: CreditPaymentScalarWhereWithAggregatesInput | CreditPaymentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CreditPayment"> | string
+    orderCode?: BigIntWithAggregatesFilter<"CreditPayment"> | bigint | number
+    userId?: StringWithAggregatesFilter<"CreditPayment"> | string
+    amount?: IntWithAggregatesFilter<"CreditPayment"> | number
+    credits?: IntWithAggregatesFilter<"CreditPayment"> | number
+    description?: StringWithAggregatesFilter<"CreditPayment"> | string
+    status?: EnumCreditPaymentStatusWithAggregatesFilter<"CreditPayment"> | $Enums.CreditPaymentStatus
+    paymentLinkId?: StringNullableWithAggregatesFilter<"CreditPayment"> | string | null
+    checkoutUrl?: StringNullableWithAggregatesFilter<"CreditPayment"> | string | null
+    payosStatus?: StringNullableWithAggregatesFilter<"CreditPayment"> | string | null
+    rawData?: JsonNullableWithAggregatesFilter<"CreditPayment">
+    paidAt?: DateTimeNullableWithAggregatesFilter<"CreditPayment"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CreditPayment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CreditPayment"> | Date | string
+  }
+
   export type ProjectCreateInput = {
     id?: string
     name: string
@@ -6222,6 +7625,125 @@ export namespace Prisma {
     key?: StringFieldUpdateOperationsInput | string
     points?: IntFieldUpdateOperationsInput | number
     expire?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CreditPaymentCreateInput = {
+    id?: string
+    orderCode: bigint | number
+    userId: string
+    amount: number
+    credits: number
+    description: string
+    status?: $Enums.CreditPaymentStatus
+    paymentLinkId?: string | null
+    checkoutUrl?: string | null
+    payosStatus?: string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditPaymentUncheckedCreateInput = {
+    id?: string
+    orderCode: bigint | number
+    userId: string
+    amount: number
+    credits: number
+    description: string
+    status?: $Enums.CreditPaymentStatus
+    paymentLinkId?: string | null
+    checkoutUrl?: string | null
+    payosStatus?: string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditPaymentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderCode?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    amount?: IntFieldUpdateOperationsInput | number
+    credits?: IntFieldUpdateOperationsInput | number
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumCreditPaymentStatusFieldUpdateOperationsInput | $Enums.CreditPaymentStatus
+    paymentLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    checkoutUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    payosStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditPaymentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderCode?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    amount?: IntFieldUpdateOperationsInput | number
+    credits?: IntFieldUpdateOperationsInput | number
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumCreditPaymentStatusFieldUpdateOperationsInput | $Enums.CreditPaymentStatus
+    paymentLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    checkoutUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    payosStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditPaymentCreateManyInput = {
+    id?: string
+    orderCode: bigint | number
+    userId: string
+    amount: number
+    credits: number
+    description: string
+    status?: $Enums.CreditPaymentStatus
+    paymentLinkId?: string | null
+    checkoutUrl?: string | null
+    payosStatus?: string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditPaymentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderCode?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    amount?: IntFieldUpdateOperationsInput | number
+    credits?: IntFieldUpdateOperationsInput | number
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumCreditPaymentStatusFieldUpdateOperationsInput | $Enums.CreditPaymentStatus
+    paymentLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    checkoutUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    payosStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditPaymentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderCode?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    amount?: IntFieldUpdateOperationsInput | number
+    credits?: IntFieldUpdateOperationsInput | number
+    description?: StringFieldUpdateOperationsInput | string
+    status?: EnumCreditPaymentStatusFieldUpdateOperationsInput | $Enums.CreditPaymentStatus
+    paymentLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    checkoutUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    payosStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    rawData?: NullableJsonNullValueInput | InputJsonValue
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -6657,6 +8179,111 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
+  }
+
+  export type EnumCreditPaymentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CreditPaymentStatus | EnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCreditPaymentStatusFilter<$PrismaModel> | $Enums.CreditPaymentStatus
+  }
+
+  export type CreditPaymentCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderCode?: SortOrder
+    userId?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    paymentLinkId?: SortOrder
+    checkoutUrl?: SortOrder
+    payosStatus?: SortOrder
+    rawData?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditPaymentAvgOrderByAggregateInput = {
+    orderCode?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+  }
+
+  export type CreditPaymentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderCode?: SortOrder
+    userId?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    paymentLinkId?: SortOrder
+    checkoutUrl?: SortOrder
+    payosStatus?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditPaymentMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderCode?: SortOrder
+    userId?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    paymentLinkId?: SortOrder
+    checkoutUrl?: SortOrder
+    payosStatus?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditPaymentSumOrderByAggregateInput = {
+    orderCode?: SortOrder
+    amount?: SortOrder
+    credits?: SortOrder
+  }
+
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type EnumCreditPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CreditPaymentStatus | EnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCreditPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.CreditPaymentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCreditPaymentStatusFilter<$PrismaModel>
+    _max?: NestedEnumCreditPaymentStatusFilter<$PrismaModel>
+  }
+
   export type MessageCreateNestedManyWithoutProjectInput = {
     create?: XOR<MessageCreateWithoutProjectInput, MessageUncheckedCreateWithoutProjectInput> | MessageCreateWithoutProjectInput[] | MessageUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: MessageCreateOrConnectWithoutProjectInput | MessageCreateOrConnectWithoutProjectInput[]
@@ -6793,6 +8420,18 @@ export namespace Prisma {
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
+  }
+
+  export type BigIntFieldUpdateOperationsInput = {
+    set?: bigint | number
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
+  }
+
+  export type EnumCreditPaymentStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CreditPaymentStatus
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -7047,6 +8686,50 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
+  }
+
+  export type NestedEnumCreditPaymentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CreditPaymentStatus | EnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCreditPaymentStatusFilter<$PrismaModel> | $Enums.CreditPaymentStatus
+  }
+
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCreditPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CreditPaymentStatus | EnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CreditPaymentStatus[] | ListEnumCreditPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCreditPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.CreditPaymentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCreditPaymentStatusFilter<$PrismaModel>
+    _max?: NestedEnumCreditPaymentStatusFilter<$PrismaModel>
   }
 
   export type MessageCreateWithoutProjectInput = {

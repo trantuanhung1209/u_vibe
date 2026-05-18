@@ -25,6 +25,14 @@ enum MessageType {
   ERROR
 }
 
+enum CreditPaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
 model Project {
   id        String    @id @default(uuid())
   name      String
@@ -72,4 +80,24 @@ model Usage {
   key   String  @id
   points Int     
   expire DateTime?
+}
+
+model CreditPayment {
+  id            String              @id @default(uuid())
+  orderCode     BigInt              @unique
+  userId        String
+  amount        Int
+  credits       Int
+  description   String
+  status        CreditPaymentStatus @default(PENDING)
+  paymentLinkId String?
+  checkoutUrl   String?
+  payosStatus   String?
+  rawData       Json?
+  paidAt        DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
