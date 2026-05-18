@@ -5,8 +5,12 @@ import { applyPaidCreditPayment } from "@/lib/payments/apply-credit-payment";
 
 export const runtime = "nodejs";
 
+function getBaseUrl(req: NextRequest) {
+  return process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+}
+
 export async function GET(req: NextRequest) {
-  const redirectUrl = new URL("/billing", req.nextUrl.origin);
+  const redirectUrl = new URL("/billing", getBaseUrl(req));
   const orderCode = req.nextUrl.searchParams.get("orderCode");
 
   if (orderCode) {

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/db";
 
+function getBaseUrl(req: NextRequest) {
+  return process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+}
+
 export async function GET(req: NextRequest) {
   const orderCode = req.nextUrl.searchParams.get("orderCode");
 
@@ -21,7 +25,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const redirectUrl = new URL("/pricing", req.nextUrl.origin);
+  const redirectUrl = new URL("/pricing", getBaseUrl(req));
   redirectUrl.searchParams.set("payment", "cancelled");
 
   return NextResponse.redirect(redirectUrl);
