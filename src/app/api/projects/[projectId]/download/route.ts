@@ -75,16 +75,17 @@ export async function GET(
       console.error("Error reading UI components:", error);
     }
     
-    const zipBlob = await createProjectZip(files, uiComponents);
+    const buffer = await createProjectZip(files, uiComponents);
 
-    // Convert Blob to Buffer for NextResponse
-    const buffer = Buffer.from(await zipBlob.arrayBuffer());
+    const baseName = project.name || "project";
+    const asciiName = baseName.replace(/[^\x20-\x7E]/g, "_");
+    const encodedName = encodeURIComponent(baseName);
 
     // Return ZIP file
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${project.name || "project"}.zip"`,
+        "Content-Disposition": `attachment; filename="${asciiName}.zip"; filename*=UTF-8''${encodedName}.zip`,
       },
     });
   } catch (error) {
