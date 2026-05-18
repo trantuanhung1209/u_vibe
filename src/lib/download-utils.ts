@@ -418,7 +418,7 @@ next-env.d.ts
 export async function createProjectZip(
   files: { [path: string]: string },
   uiComponents?: { [path: string]: string }
-): Promise<Buffer> {
+): Promise<Uint8Array> {
   const zip = new JSZip();
 
   // Create src directory structure
@@ -470,7 +470,7 @@ export async function createProjectZip(
   }
 
   // Generate ZIP file
-  return await zip.generateAsync({ type: "nodebuffer" });
+  return await zip.generateAsync({ type: "uint8array" });
 }
 
 /**

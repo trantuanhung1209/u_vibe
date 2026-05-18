@@ -75,14 +75,21 @@ export async function GET(
       console.error("Error reading UI components:", error);
     }
     
-    const buffer = await createProjectZip(files, uiComponents);
+    const zipData = await createProjectZip(files, uiComponents);
 
     const baseName = project.name || "project";
     const asciiName = baseName.replace(/[^\x20-\x7E]/g, "_");
     const encodedName = encodeURIComponent(baseName);
 
     // Return ZIP file
-    return new NextResponse(buffer, {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(zipData);
+        controller.close();
+      },
+    });
+
+    return new NextResponse(stream, {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${asciiName}.zip"; filename*=UTF-8''${encodedName}.zip`,
