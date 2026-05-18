@@ -30,7 +30,11 @@ const Page = () => {
 
   useEffect(() => {
     if (paymentStatus === "success") {
-      toast.success("Payment received. Credits will appear after PayOS confirms it.");
+      toast.success("Payment confirmed. Credits have been added.");
+    }
+
+    if (paymentStatus === "pending") {
+      toast.info("Payment is pending. Credits will be added after PayOS confirms it.");
     }
 
     if (paymentStatus === "cancelled") {

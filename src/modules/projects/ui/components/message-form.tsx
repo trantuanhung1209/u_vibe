@@ -135,7 +135,15 @@ export const MessageForm = ({ projectId }: Props) => {
   return (
     <>
       <Form {...form}>
-        {showUsage && <Usage points={usage.remainingPoints} msBeforeNext={usage.msBeforeNext} />}
+        {showUsage && (
+          <Usage
+            points={usage.remainingPoints}
+            msBeforeNext={usage.msBeforeNext}
+            isPro={usage.isPro}
+            paidCredits={usage.paidCredits}
+            freeCredits={usage.freeCredits}
+          />
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();

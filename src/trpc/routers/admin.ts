@@ -67,6 +67,73 @@ export const adminRouter = createTRPCRouter({
     };
   }),
 
+  getPayments: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(25),
+        offset: z.number().min(0).default(0),
+        status: z
+          .enum(["all", "PENDING", "PAID", "CANCELLED", "EXPIRED", "FAILED"])
+          .default("all"),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      await requireAdmin();
+
+      const where = {
+        ...(input.status !== "all" && { status: input.status }),
+        ...(input.search && {
+          OR: [
+            { userId: { contains: input.search, mode: "insensitive" as const } },
+            { description: { contains: input.search, mode: "insensitive" as const } },
+          ],
+        }),
+      };
+
+      const [payments, totalCount] = await Promise.all([
+        db.creditPayment.findMany({
+          where,
+          take: input.limit,
+          skip: input.offset,
+          orderBy: { createdAt: "desc" },
+        }),
+        db.creditPayment.count({ where }),
+      ]);
+
+      const client = await clerkClient();
+      const paymentsWithUsers = await Promise.all(
+        payments.map(async (payment) => {
+          try {
+            const user = await client.users.getUser(payment.userId);
+
+            return {
+              ...payment,
+              orderCode: payment.orderCode.toString(),
+              user: {
+                id: user.id,
+                firstName: user.firstName || "",
+                lastName: user.lastName || "",
+                imageUrl: user.imageUrl,
+                email: user.emailAddresses[0]?.emailAddress || "",
+              },
+            };
+          } catch {
+            return {
+              ...payment,
+              orderCode: payment.orderCode.toString(),
+              user: null,
+            };
+          }
+        })
+      );
+
+      return {
+        payments: paymentsWithUsers,
+        totalCount,
+      };
+    }),
+
   // Lấy danh sách projects với filter và pagination
   getProjects: protectedProcedure
     .input(

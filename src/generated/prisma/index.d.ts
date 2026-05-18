@@ -34,6 +34,11 @@ export type Fragment = $Result.DefaultSelection<Prisma.$FragmentPayload>
  */
 export type Usage = $Result.DefaultSelection<Prisma.$UsagePayload>
 /**
+ * Model CreditBalance
+ * 
+ */
+export type CreditBalance = $Result.DefaultSelection<Prisma.$CreditBalancePayload>
+/**
  * Model CreditPayment
  * 
  */
@@ -240,6 +245,16 @@ export class PrismaClient<
     * ```
     */
   get usage(): Prisma.UsageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.creditBalance`: Exposes CRUD operations for the **CreditBalance** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CreditBalances
+    * const creditBalances = await prisma.creditBalance.findMany()
+    * ```
+    */
+  get creditBalance(): Prisma.CreditBalanceDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.creditPayment`: Exposes CRUD operations for the **CreditPayment** model.
@@ -695,6 +710,7 @@ export namespace Prisma {
     Message: 'Message',
     Fragment: 'Fragment',
     Usage: 'Usage',
+    CreditBalance: 'CreditBalance',
     CreditPayment: 'CreditPayment'
   };
 
@@ -714,7 +730,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "project" | "message" | "fragment" | "usage" | "creditPayment"
+      modelProps: "project" | "message" | "fragment" | "usage" | "creditBalance" | "creditPayment"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1014,6 +1030,80 @@ export namespace Prisma {
           }
         }
       }
+      CreditBalance: {
+        payload: Prisma.$CreditBalancePayload<ExtArgs>
+        fields: Prisma.CreditBalanceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CreditBalanceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CreditBalanceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          findFirst: {
+            args: Prisma.CreditBalanceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CreditBalanceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          findMany: {
+            args: Prisma.CreditBalanceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>[]
+          }
+          create: {
+            args: Prisma.CreditBalanceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          createMany: {
+            args: Prisma.CreditBalanceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CreditBalanceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>[]
+          }
+          delete: {
+            args: Prisma.CreditBalanceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          update: {
+            args: Prisma.CreditBalanceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          deleteMany: {
+            args: Prisma.CreditBalanceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CreditBalanceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CreditBalanceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>[]
+          }
+          upsert: {
+            args: Prisma.CreditBalanceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CreditBalancePayload>
+          }
+          aggregate: {
+            args: Prisma.CreditBalanceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCreditBalance>
+          }
+          groupBy: {
+            args: Prisma.CreditBalanceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CreditBalanceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CreditBalanceCountArgs<ExtArgs>
+            result: $Utils.Optional<CreditBalanceCountAggregateOutputType> | number
+          }
+        }
+      }
       CreditPayment: {
         payload: Prisma.$CreditPaymentPayload<ExtArgs>
         fields: Prisma.CreditPaymentFieldRefs
@@ -1188,6 +1278,7 @@ export namespace Prisma {
     message?: MessageOmit
     fragment?: FragmentOmit
     usage?: UsageOmit
+    creditBalance?: CreditBalanceOmit
     creditPayment?: CreditPaymentOmit
   }
 
@@ -5595,6 +5686,1022 @@ export namespace Prisma {
 
 
   /**
+   * Model CreditBalance
+   */
+
+  export type AggregateCreditBalance = {
+    _count: CreditBalanceCountAggregateOutputType | null
+    _avg: CreditBalanceAvgAggregateOutputType | null
+    _sum: CreditBalanceSumAggregateOutputType | null
+    _min: CreditBalanceMinAggregateOutputType | null
+    _max: CreditBalanceMaxAggregateOutputType | null
+  }
+
+  export type CreditBalanceAvgAggregateOutputType = {
+    credits: number | null
+  }
+
+  export type CreditBalanceSumAggregateOutputType = {
+    credits: number | null
+  }
+
+  export type CreditBalanceMinAggregateOutputType = {
+    userId: string | null
+    credits: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CreditBalanceMaxAggregateOutputType = {
+    userId: string | null
+    credits: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CreditBalanceCountAggregateOutputType = {
+    userId: number
+    credits: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CreditBalanceAvgAggregateInputType = {
+    credits?: true
+  }
+
+  export type CreditBalanceSumAggregateInputType = {
+    credits?: true
+  }
+
+  export type CreditBalanceMinAggregateInputType = {
+    userId?: true
+    credits?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CreditBalanceMaxAggregateInputType = {
+    userId?: true
+    credits?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CreditBalanceCountAggregateInputType = {
+    userId?: true
+    credits?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CreditBalanceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditBalance to aggregate.
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditBalances to fetch.
+     */
+    orderBy?: CreditBalanceOrderByWithRelationInput | CreditBalanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CreditBalanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditBalances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditBalances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CreditBalances
+    **/
+    _count?: true | CreditBalanceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CreditBalanceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CreditBalanceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CreditBalanceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CreditBalanceMaxAggregateInputType
+  }
+
+  export type GetCreditBalanceAggregateType<T extends CreditBalanceAggregateArgs> = {
+        [P in keyof T & keyof AggregateCreditBalance]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCreditBalance[P]>
+      : GetScalarType<T[P], AggregateCreditBalance[P]>
+  }
+
+
+
+
+  export type CreditBalanceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CreditBalanceWhereInput
+    orderBy?: CreditBalanceOrderByWithAggregationInput | CreditBalanceOrderByWithAggregationInput[]
+    by: CreditBalanceScalarFieldEnum[] | CreditBalanceScalarFieldEnum
+    having?: CreditBalanceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CreditBalanceCountAggregateInputType | true
+    _avg?: CreditBalanceAvgAggregateInputType
+    _sum?: CreditBalanceSumAggregateInputType
+    _min?: CreditBalanceMinAggregateInputType
+    _max?: CreditBalanceMaxAggregateInputType
+  }
+
+  export type CreditBalanceGroupByOutputType = {
+    userId: string
+    credits: number
+    createdAt: Date
+    updatedAt: Date
+    _count: CreditBalanceCountAggregateOutputType | null
+    _avg: CreditBalanceAvgAggregateOutputType | null
+    _sum: CreditBalanceSumAggregateOutputType | null
+    _min: CreditBalanceMinAggregateOutputType | null
+    _max: CreditBalanceMaxAggregateOutputType | null
+  }
+
+  type GetCreditBalanceGroupByPayload<T extends CreditBalanceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CreditBalanceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CreditBalanceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CreditBalanceGroupByOutputType[P]>
+            : GetScalarType<T[P], CreditBalanceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CreditBalanceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    credits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditBalance"]>
+
+  export type CreditBalanceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    credits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditBalance"]>
+
+  export type CreditBalanceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    credits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["creditBalance"]>
+
+  export type CreditBalanceSelectScalar = {
+    userId?: boolean
+    credits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CreditBalanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "credits" | "createdAt" | "updatedAt", ExtArgs["result"]["creditBalance"]>
+
+  export type $CreditBalancePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CreditBalance"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      userId: string
+      credits: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["creditBalance"]>
+    composites: {}
+  }
+
+  type CreditBalanceGetPayload<S extends boolean | null | undefined | CreditBalanceDefaultArgs> = $Result.GetResult<Prisma.$CreditBalancePayload, S>
+
+  type CreditBalanceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CreditBalanceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CreditBalanceCountAggregateInputType | true
+    }
+
+  export interface CreditBalanceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CreditBalance'], meta: { name: 'CreditBalance' } }
+    /**
+     * Find zero or one CreditBalance that matches the filter.
+     * @param {CreditBalanceFindUniqueArgs} args - Arguments to find a CreditBalance
+     * @example
+     * // Get one CreditBalance
+     * const creditBalance = await prisma.creditBalance.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CreditBalanceFindUniqueArgs>(args: SelectSubset<T, CreditBalanceFindUniqueArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CreditBalance that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CreditBalanceFindUniqueOrThrowArgs} args - Arguments to find a CreditBalance
+     * @example
+     * // Get one CreditBalance
+     * const creditBalance = await prisma.creditBalance.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CreditBalanceFindUniqueOrThrowArgs>(args: SelectSubset<T, CreditBalanceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditBalance that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceFindFirstArgs} args - Arguments to find a CreditBalance
+     * @example
+     * // Get one CreditBalance
+     * const creditBalance = await prisma.creditBalance.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CreditBalanceFindFirstArgs>(args?: SelectSubset<T, CreditBalanceFindFirstArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CreditBalance that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceFindFirstOrThrowArgs} args - Arguments to find a CreditBalance
+     * @example
+     * // Get one CreditBalance
+     * const creditBalance = await prisma.creditBalance.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CreditBalanceFindFirstOrThrowArgs>(args?: SelectSubset<T, CreditBalanceFindFirstOrThrowArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CreditBalances that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CreditBalances
+     * const creditBalances = await prisma.creditBalance.findMany()
+     * 
+     * // Get first 10 CreditBalances
+     * const creditBalances = await prisma.creditBalance.findMany({ take: 10 })
+     * 
+     * // Only select the `userId`
+     * const creditBalanceWithUserIdOnly = await prisma.creditBalance.findMany({ select: { userId: true } })
+     * 
+     */
+    findMany<T extends CreditBalanceFindManyArgs>(args?: SelectSubset<T, CreditBalanceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CreditBalance.
+     * @param {CreditBalanceCreateArgs} args - Arguments to create a CreditBalance.
+     * @example
+     * // Create one CreditBalance
+     * const CreditBalance = await prisma.creditBalance.create({
+     *   data: {
+     *     // ... data to create a CreditBalance
+     *   }
+     * })
+     * 
+     */
+    create<T extends CreditBalanceCreateArgs>(args: SelectSubset<T, CreditBalanceCreateArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CreditBalances.
+     * @param {CreditBalanceCreateManyArgs} args - Arguments to create many CreditBalances.
+     * @example
+     * // Create many CreditBalances
+     * const creditBalance = await prisma.creditBalance.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CreditBalanceCreateManyArgs>(args?: SelectSubset<T, CreditBalanceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CreditBalances and returns the data saved in the database.
+     * @param {CreditBalanceCreateManyAndReturnArgs} args - Arguments to create many CreditBalances.
+     * @example
+     * // Create many CreditBalances
+     * const creditBalance = await prisma.creditBalance.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CreditBalances and only return the `userId`
+     * const creditBalanceWithUserIdOnly = await prisma.creditBalance.createManyAndReturn({
+     *   select: { userId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CreditBalanceCreateManyAndReturnArgs>(args?: SelectSubset<T, CreditBalanceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CreditBalance.
+     * @param {CreditBalanceDeleteArgs} args - Arguments to delete one CreditBalance.
+     * @example
+     * // Delete one CreditBalance
+     * const CreditBalance = await prisma.creditBalance.delete({
+     *   where: {
+     *     // ... filter to delete one CreditBalance
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CreditBalanceDeleteArgs>(args: SelectSubset<T, CreditBalanceDeleteArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CreditBalance.
+     * @param {CreditBalanceUpdateArgs} args - Arguments to update one CreditBalance.
+     * @example
+     * // Update one CreditBalance
+     * const creditBalance = await prisma.creditBalance.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CreditBalanceUpdateArgs>(args: SelectSubset<T, CreditBalanceUpdateArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CreditBalances.
+     * @param {CreditBalanceDeleteManyArgs} args - Arguments to filter CreditBalances to delete.
+     * @example
+     * // Delete a few CreditBalances
+     * const { count } = await prisma.creditBalance.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CreditBalanceDeleteManyArgs>(args?: SelectSubset<T, CreditBalanceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditBalances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CreditBalances
+     * const creditBalance = await prisma.creditBalance.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CreditBalanceUpdateManyArgs>(args: SelectSubset<T, CreditBalanceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CreditBalances and returns the data updated in the database.
+     * @param {CreditBalanceUpdateManyAndReturnArgs} args - Arguments to update many CreditBalances.
+     * @example
+     * // Update many CreditBalances
+     * const creditBalance = await prisma.creditBalance.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CreditBalances and only return the `userId`
+     * const creditBalanceWithUserIdOnly = await prisma.creditBalance.updateManyAndReturn({
+     *   select: { userId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CreditBalanceUpdateManyAndReturnArgs>(args: SelectSubset<T, CreditBalanceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CreditBalance.
+     * @param {CreditBalanceUpsertArgs} args - Arguments to update or create a CreditBalance.
+     * @example
+     * // Update or create a CreditBalance
+     * const creditBalance = await prisma.creditBalance.upsert({
+     *   create: {
+     *     // ... data to create a CreditBalance
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CreditBalance we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CreditBalanceUpsertArgs>(args: SelectSubset<T, CreditBalanceUpsertArgs<ExtArgs>>): Prisma__CreditBalanceClient<$Result.GetResult<Prisma.$CreditBalancePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CreditBalances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceCountArgs} args - Arguments to filter CreditBalances to count.
+     * @example
+     * // Count the number of CreditBalances
+     * const count = await prisma.creditBalance.count({
+     *   where: {
+     *     // ... the filter for the CreditBalances we want to count
+     *   }
+     * })
+    **/
+    count<T extends CreditBalanceCountArgs>(
+      args?: Subset<T, CreditBalanceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CreditBalanceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CreditBalance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CreditBalanceAggregateArgs>(args: Subset<T, CreditBalanceAggregateArgs>): Prisma.PrismaPromise<GetCreditBalanceAggregateType<T>>
+
+    /**
+     * Group by CreditBalance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CreditBalanceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CreditBalanceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CreditBalanceGroupByArgs['orderBy'] }
+        : { orderBy?: CreditBalanceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CreditBalanceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCreditBalanceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CreditBalance model
+   */
+  readonly fields: CreditBalanceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CreditBalance.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CreditBalanceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CreditBalance model
+   */
+  interface CreditBalanceFieldRefs {
+    readonly userId: FieldRef<"CreditBalance", 'String'>
+    readonly credits: FieldRef<"CreditBalance", 'Int'>
+    readonly createdAt: FieldRef<"CreditBalance", 'DateTime'>
+    readonly updatedAt: FieldRef<"CreditBalance", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CreditBalance findUnique
+   */
+  export type CreditBalanceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditBalance to fetch.
+     */
+    where: CreditBalanceWhereUniqueInput
+  }
+
+  /**
+   * CreditBalance findUniqueOrThrow
+   */
+  export type CreditBalanceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditBalance to fetch.
+     */
+    where: CreditBalanceWhereUniqueInput
+  }
+
+  /**
+   * CreditBalance findFirst
+   */
+  export type CreditBalanceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditBalance to fetch.
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditBalances to fetch.
+     */
+    orderBy?: CreditBalanceOrderByWithRelationInput | CreditBalanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditBalances.
+     */
+    cursor?: CreditBalanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditBalances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditBalances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditBalances.
+     */
+    distinct?: CreditBalanceScalarFieldEnum | CreditBalanceScalarFieldEnum[]
+  }
+
+  /**
+   * CreditBalance findFirstOrThrow
+   */
+  export type CreditBalanceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditBalance to fetch.
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditBalances to fetch.
+     */
+    orderBy?: CreditBalanceOrderByWithRelationInput | CreditBalanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CreditBalances.
+     */
+    cursor?: CreditBalanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditBalances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditBalances.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CreditBalances.
+     */
+    distinct?: CreditBalanceScalarFieldEnum | CreditBalanceScalarFieldEnum[]
+  }
+
+  /**
+   * CreditBalance findMany
+   */
+  export type CreditBalanceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter, which CreditBalances to fetch.
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CreditBalances to fetch.
+     */
+    orderBy?: CreditBalanceOrderByWithRelationInput | CreditBalanceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CreditBalances.
+     */
+    cursor?: CreditBalanceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CreditBalances from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CreditBalances.
+     */
+    skip?: number
+    distinct?: CreditBalanceScalarFieldEnum | CreditBalanceScalarFieldEnum[]
+  }
+
+  /**
+   * CreditBalance create
+   */
+  export type CreditBalanceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * The data needed to create a CreditBalance.
+     */
+    data: XOR<CreditBalanceCreateInput, CreditBalanceUncheckedCreateInput>
+  }
+
+  /**
+   * CreditBalance createMany
+   */
+  export type CreditBalanceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CreditBalances.
+     */
+    data: CreditBalanceCreateManyInput | CreditBalanceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CreditBalance createManyAndReturn
+   */
+  export type CreditBalanceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * The data used to create many CreditBalances.
+     */
+    data: CreditBalanceCreateManyInput | CreditBalanceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CreditBalance update
+   */
+  export type CreditBalanceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * The data needed to update a CreditBalance.
+     */
+    data: XOR<CreditBalanceUpdateInput, CreditBalanceUncheckedUpdateInput>
+    /**
+     * Choose, which CreditBalance to update.
+     */
+    where: CreditBalanceWhereUniqueInput
+  }
+
+  /**
+   * CreditBalance updateMany
+   */
+  export type CreditBalanceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CreditBalances.
+     */
+    data: XOR<CreditBalanceUpdateManyMutationInput, CreditBalanceUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditBalances to update
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * Limit how many CreditBalances to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditBalance updateManyAndReturn
+   */
+  export type CreditBalanceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * The data used to update CreditBalances.
+     */
+    data: XOR<CreditBalanceUpdateManyMutationInput, CreditBalanceUncheckedUpdateManyInput>
+    /**
+     * Filter which CreditBalances to update
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * Limit how many CreditBalances to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditBalance upsert
+   */
+  export type CreditBalanceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * The filter to search for the CreditBalance to update in case it exists.
+     */
+    where: CreditBalanceWhereUniqueInput
+    /**
+     * In case the CreditBalance found by the `where` argument doesn't exist, create a new CreditBalance with this data.
+     */
+    create: XOR<CreditBalanceCreateInput, CreditBalanceUncheckedCreateInput>
+    /**
+     * In case the CreditBalance was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CreditBalanceUpdateInput, CreditBalanceUncheckedUpdateInput>
+  }
+
+  /**
+   * CreditBalance delete
+   */
+  export type CreditBalanceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+    /**
+     * Filter which CreditBalance to delete.
+     */
+    where: CreditBalanceWhereUniqueInput
+  }
+
+  /**
+   * CreditBalance deleteMany
+   */
+  export type CreditBalanceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CreditBalances to delete
+     */
+    where?: CreditBalanceWhereInput
+    /**
+     * Limit how many CreditBalances to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CreditBalance without action
+   */
+  export type CreditBalanceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CreditBalance
+     */
+    select?: CreditBalanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CreditBalance
+     */
+    omit?: CreditBalanceOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model CreditPayment
    */
 
@@ -6807,6 +7914,16 @@ export namespace Prisma {
   export type UsageScalarFieldEnum = (typeof UsageScalarFieldEnum)[keyof typeof UsageScalarFieldEnum]
 
 
+  export const CreditBalanceScalarFieldEnum: {
+    userId: 'userId',
+    credits: 'credits',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CreditBalanceScalarFieldEnum = (typeof CreditBalanceScalarFieldEnum)[keyof typeof CreditBalanceScalarFieldEnum]
+
+
   export const CreditPaymentScalarFieldEnum: {
     id: 'id',
     orderCode: 'orderCode',
@@ -7263,6 +8380,55 @@ export namespace Prisma {
     expire?: DateTimeNullableWithAggregatesFilter<"Usage"> | Date | string | null
   }
 
+  export type CreditBalanceWhereInput = {
+    AND?: CreditBalanceWhereInput | CreditBalanceWhereInput[]
+    OR?: CreditBalanceWhereInput[]
+    NOT?: CreditBalanceWhereInput | CreditBalanceWhereInput[]
+    userId?: StringFilter<"CreditBalance"> | string
+    credits?: IntFilter<"CreditBalance"> | number
+    createdAt?: DateTimeFilter<"CreditBalance"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditBalance"> | Date | string
+  }
+
+  export type CreditBalanceOrderByWithRelationInput = {
+    userId?: SortOrder
+    credits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditBalanceWhereUniqueInput = Prisma.AtLeast<{
+    userId?: string
+    AND?: CreditBalanceWhereInput | CreditBalanceWhereInput[]
+    OR?: CreditBalanceWhereInput[]
+    NOT?: CreditBalanceWhereInput | CreditBalanceWhereInput[]
+    credits?: IntFilter<"CreditBalance"> | number
+    createdAt?: DateTimeFilter<"CreditBalance"> | Date | string
+    updatedAt?: DateTimeFilter<"CreditBalance"> | Date | string
+  }, "userId">
+
+  export type CreditBalanceOrderByWithAggregationInput = {
+    userId?: SortOrder
+    credits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CreditBalanceCountOrderByAggregateInput
+    _avg?: CreditBalanceAvgOrderByAggregateInput
+    _max?: CreditBalanceMaxOrderByAggregateInput
+    _min?: CreditBalanceMinOrderByAggregateInput
+    _sum?: CreditBalanceSumOrderByAggregateInput
+  }
+
+  export type CreditBalanceScalarWhereWithAggregatesInput = {
+    AND?: CreditBalanceScalarWhereWithAggregatesInput | CreditBalanceScalarWhereWithAggregatesInput[]
+    OR?: CreditBalanceScalarWhereWithAggregatesInput[]
+    NOT?: CreditBalanceScalarWhereWithAggregatesInput | CreditBalanceScalarWhereWithAggregatesInput[]
+    userId?: StringWithAggregatesFilter<"CreditBalance"> | string
+    credits?: IntWithAggregatesFilter<"CreditBalance"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"CreditBalance"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CreditBalance"> | Date | string
+  }
+
   export type CreditPaymentWhereInput = {
     AND?: CreditPaymentWhereInput | CreditPaymentWhereInput[]
     OR?: CreditPaymentWhereInput[]
@@ -7625,6 +8791,55 @@ export namespace Prisma {
     key?: StringFieldUpdateOperationsInput | string
     points?: IntFieldUpdateOperationsInput | number
     expire?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CreditBalanceCreateInput = {
+    userId: string
+    credits?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditBalanceUncheckedCreateInput = {
+    userId: string
+    credits?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditBalanceUpdateInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    credits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditBalanceUncheckedUpdateInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    credits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditBalanceCreateManyInput = {
+    userId: string
+    credits?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CreditBalanceUpdateManyMutationInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    credits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CreditBalanceUncheckedUpdateManyInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    credits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CreditPaymentCreateInput = {
@@ -8177,6 +9392,35 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type CreditBalanceCountOrderByAggregateInput = {
+    userId?: SortOrder
+    credits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditBalanceAvgOrderByAggregateInput = {
+    credits?: SortOrder
+  }
+
+  export type CreditBalanceMaxOrderByAggregateInput = {
+    userId?: SortOrder
+    credits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditBalanceMinOrderByAggregateInput = {
+    userId?: SortOrder
+    credits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CreditBalanceSumOrderByAggregateInput = {
+    credits?: SortOrder
   }
 
   export type BigIntFilter<$PrismaModel = never> = {

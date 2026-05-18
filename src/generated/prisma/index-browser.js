@@ -158,6 +158,13 @@ exports.Prisma.UsageScalarFieldEnum = {
   expire: 'expire'
 };
 
+exports.Prisma.CreditBalanceScalarFieldEnum = {
+  userId: 'userId',
+  credits: 'credits',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CreditPaymentScalarFieldEnum = {
   id: 'id',
   orderCode: 'orderCode',
@@ -227,6 +234,7 @@ exports.Prisma.ModelName = {
   Message: 'Message',
   Fragment: 'Fragment',
   Usage: 'Usage',
+  CreditBalance: 'CreditBalance',
   CreditPayment: 'CreditPayment'
 };
 

@@ -7,12 +7,14 @@ import { ProjectsChart } from "@/components/admin/projects-chart";
 import { UserActivityChart } from "@/components/admin/user-activity-chart";
 import { UsersTable } from "@/components/admin/users-table";
 import { ProjectsTable } from "@/components/admin/projects-table";
+import { PaymentsTable } from "@/components/admin/payments-table";
 import {
   FolderKanban,
   MessageSquare,
   Code2,
   Users,
   TrendingUp,
+  ReceiptText,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,6 +123,10 @@ export default function AdminDashboard() {
             <FolderKanban className="w-4 h-4 mr-2" />
             Recent Projects
           </TabsTrigger>
+          <TabsTrigger value="payments">
+            <ReceiptText className="w-4 h-4 mr-2" />
+            Payments
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
@@ -141,6 +147,17 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <ProjectsTable />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Logs</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PaymentsTable />
             </CardContent>
           </Card>
         </TabsContent>

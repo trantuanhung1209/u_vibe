@@ -139,6 +139,7 @@
 | **OpenAI** | GPT-4.1 / GPT-4o | Mô hình AI sinh code |
 | **E2B Sandbox** | 2.x | Môi trường sandbox chạy code |
 | **Clerk** | 6.x | Authentication & User management |
+| **PayOS** | 2.x | Thanh toán credit một lần tại Việt Nam |
 | **rate-limiter-flexible** | latest | Rate limiting / Usage tracking |
 | **SuperJSON** | latest | Serialization cho tRPC |
 
@@ -150,6 +151,7 @@
 | **OpenAI API** | Sinh code bằng AI (GPT-4.1 cho text, GPT-4o cho hình ảnh) |
 | **Inngest Cloud** | Quản lý event queue và background jobs |
 | **E2B** | Sandbox cloud để chạy code an toàn |
+| **PayOS** | Tạo link thanh toán, xác thực webhook, ghi nhận đơn mua credit |
 | **Vercel** | Hosting và CI/CD |
 
 ---
@@ -177,10 +179,25 @@
 ┌──────────────┐
 │    Usage     │
 ├──────────────┤
-│ key      (PK)│   (key = userId, dùng để tracking usage)
+│ key      (PK)│   (key = userId, dùng cho free quota)
 │ points       │
 │ expire       │
 └──────────────┘
+
+┌────────────────┐       ┌─────────────────┐
+│ CreditBalance  │       │  CreditPayment  │
+├────────────────┤       ├─────────────────┤
+│ userId     PK  │       │ id          PK  │
+│ credits        │       │ orderCode unique│
+│ createdAt      │       │ userId          │
+│ updatedAt      │       │ amount          │
+└────────────────┘       │ credits         │
+                         │ status          │
+                         │ paymentLinkId   │
+                         │ checkoutUrl     │
+                         │ rawData         │
+                         │ paidAt          │
+                         └─────────────────┘
 ```
 
 ### 4.2 Chi tiết các bảng
@@ -222,9 +239,33 @@
 #### Bảng `Usage`
 | Cột | Kiểu dữ liệu | Mô tả |
 |---|---|---|
-| `key` | `String (PK)` | User ID — dùng làm khóa chính |
-| `points` | `Int` | Số điểm đã sử dụng |
-| `expire` | `DateTime?` | Thời gian hết hạn chu kỳ |
+| `key` | `String (PK)` | User ID — dùng làm khóa chính cho free quota |
+| `points` | `Int` | Số free credits đã sử dụng trong chu kỳ |
+| `expire` | `DateTime?` | Thời điểm reset chu kỳ free credits |
+
+#### Bảng `CreditBalance`
+| Cột | Kiểu dữ liệu | Mô tả |
+|---|---|---|
+| `userId` | `String (PK)` | ID người dùng từ Clerk |
+| `credits` | `Int` | Số paid credits còn lại, không tự reset |
+| `createdAt` | `DateTime` | Thời gian tạo balance |
+| `updatedAt` | `DateTime` | Thời gian cập nhật balance |
+
+#### Bảng `CreditPayment`
+| Cột | Kiểu dữ liệu | Mô tả |
+|---|---|---|
+| `id` | `String (UUID)` | Khóa chính |
+| `orderCode` | `BigInt (unique)` | Mã đơn hàng gửi sang PayOS |
+| `userId` | `String` | ID người mua từ Clerk |
+| `amount` | `Int` | Số tiền thanh toán (VND) |
+| `credits` | `Int` | Số credit cộng thêm khi thanh toán thành công |
+| `description` | `String` | Mô tả đơn hàng PayOS |
+| `status` | `Enum` | Trạng thái: PENDING/PAID/CANCELLED/EXPIRED/FAILED |
+| `paymentLinkId` | `String?` | ID payment link từ PayOS |
+| `checkoutUrl` | `String?` | URL checkout PayOS |
+| `payosStatus` | `String?` | Trạng thái/mô tả trả về từ PayOS |
+| `rawData` | `Json?` | Payload PayOS để đối soát |
+| `paidAt` | `DateTime?` | Thời gian ghi nhận thanh toán thành công |
 
 ---
 
@@ -518,17 +559,31 @@ Người dùng          Frontend               Clerk                  Middleware
 
 ### 6.6 Quản lý Usage (Giới hạn sử dụng)
 
-**Mô tả**: Hệ thống giới hạn số lần sinh code dựa trên gói người dùng.
+**Mô tả**: Hệ thống giới hạn số lần sinh code bằng credit. Mỗi prompt tiêu thụ 1 credit. Free credits reset theo chu kỳ, còn paid credits mua qua PayOS không reset và được dùng trước.
 
 **Xử lý kỹ thuật**:
-- Sử dụng `rate-limiter-flexible` với Prisma adapter
-- **Free plan**: 30 điểm / 30 ngày
-- **Pro plan**: 100 điểm / 30 ngày
-- Mỗi lần sinh code tiêu thụ 1 điểm
+- Sử dụng `rate-limiter-flexible` với Prisma adapter cho free quota
+- **Free quota**: 30 credits / 30 ngày, lưu tại bảng `Usage`
+- **Paid credits**: lưu tại bảng `CreditBalance`, không tự reset
+- Mỗi lần sinh code tiêu thụ 1 credit
+- Hệ thống trừ paid credits trước; khi paid credits về 0, user tự quay về free quota
 - Kiểm tra credits trước khi tạo message (`consumeCredits()`)
-- Pricing page sử dụng Clerk `<PricingTable>` component
+- Pricing page tạo PayOS checkout link cho gói 20.000 VND = 100 credits
+- Trang `/billing` hiển thị tài khoản, số credit còn lại và lịch sử thanh toán
 
-### 6.7 Tải xuống dự án (Download)
+### 6.7 Thanh toán PayOS và Billing
+
+**Mô tả**: Người dùng có thể mua gói credit một lần qua PayOS. Sau khi thanh toán thành công, credit được cộng dồn vào paid balance và không hết hạn theo chu kỳ free quota.
+
+**Xử lý kỹ thuật**:
+- API `POST /api/payments/payos/checkout`: tạo `CreditPayment` trạng thái PENDING, gọi PayOS tạo payment link, trả về `checkoutUrl`
+- API `GET /api/payments/payos/return`: khi user quay lại từ PayOS, server kiểm tra trạng thái order và chuyển về `/billing`
+- API `POST /api/webhooks/payos`: xác thực webhook PayOS, ghi nhận đơn PAID và cộng credit
+- Hàm `applyPaidCreditPayment()` đảm bảo idempotency: một `orderCode` chỉ được cộng credit một lần
+- `CreditPayment` lưu log thanh toán để admin đối soát
+- `CreditBalance` lưu số paid credits còn lại theo user
+
+### 6.8 Tải xuống dự án (Download)
 
 **Mô tả**: Người dùng có thể tải toàn bộ code đã sinh thành file ZIP.
 
@@ -537,17 +592,19 @@ Người dùng          Frontend               Clerk                  Middleware
 - Sử dụng thư viện `jszip` để đóng gói các file từ Fragment
 - Trả về file `.zip` cho client tải xuống
 
-### 6.8 Admin Dashboard
+### 6.9 Admin Dashboard
 
 **Mô tả**: Trang quản trị cho admin xem thống kê hệ thống.
 
 **Xử lý kỹ thuật**:
 - Route `/admin` được bảo vệ bởi middleware (kiểm tra role = "admin")
 - Hiển thị: thống kê users, projects, biểu đồ hoạt động
+- Tab Payments hiển thị payment logs từ `CreditPayment`: user, email, orderCode, trạng thái, số tiền, credits, thời gian tạo/thanh toán
+- Admin có thể filter payment logs theo trạng thái và tìm kiếm theo user/description
 - Sử dụng `recharts` cho biểu đồ
 - Role được lấy từ Clerk session claims (`metadata.role`)
 
-### 6.9 Scroll thông minh trong chat
+### 6.10 Scroll thông minh trong chat
 
 **Mô tả**: Chat tự động scroll xuống khi có tin nhắn mới, nhưng giữ nguyên vị trí khi người dùng đang đọc lịch sử.
 
@@ -570,7 +627,8 @@ u_vibe/
 │   │   ├── (home)/                # Route group trang chủ
 │   │   │   ├── page.tsx           # Trang chủ (form + danh sách project)
 │   │   │   ├── layout.tsx         # Layout trang chủ
-│   │   │   ├── pricing/           # Trang pricing
+│   │   │   ├── pricing/           # Trang mua credit qua PayOS
+│   │   │   ├── billing/           # Trang tài khoản, credit, lịch sử thanh toán
 │   │   │   ├── sign-in/           # Trang đăng nhập (Clerk)
 │   │   │   └── sign-up/           # Trang đăng ký (Clerk)
 │   │   │
@@ -587,6 +645,8 @@ u_vibe/
 │   │   │   ├── inngest/route.ts   # Inngest webhook endpoint
 │   │   │   ├── trpc/[trpc]/       # tRPC API handler
 │   │   │   ├── upload/route.ts    # API upload hình ảnh
+│   │   │   ├── payments/payos/    # PayOS checkout/return/cancel
+│   │   │   ├── webhooks/payos/    # PayOS webhook endpoint
 │   │   │   └── projects/          # API download project
 │   │   │
 │   │   ├── layout.tsx             # Root layout (providers, themes)
@@ -637,12 +697,15 @@ u_vibe/
 │   │   ├── query-client.ts        # React Query client config
 │   │   └── routers/
 │   │       ├── _app.ts            # Root router (merge all routers)
-│   │       └── admin.ts           # Admin router
+│   │       ├── admin.ts           # Admin router
+│   │       └── billing.ts         # Billing router
 │   │
 │   ├── lib/                       # Shared utilities
 │   │   ├── db.ts                  # Prisma client (singleton)
 │   │   ├── auth.ts                # Auth utilities
 │   │   ├── usage.ts               # Usage/credits system
+│   │   ├── payos.ts               # PayOS SDK client
+│   │   ├── payments/              # Credit pack + apply payment utilities
 │   │   ├── metadata.ts            # SEO metadata generator
 │   │   ├── utils.ts               # General utilities (cn)
 │   │   └── download-utils.ts      # ZIP download utilities
@@ -720,6 +783,7 @@ u_vibe/
 | Background Jobs | Inngest Cloud |
 | Code Sandbox | E2B Cloud |
 | Authentication | Clerk |
+| Payments | PayOS |
 | AI Model | OpenAI API |
 
 ### 9.2 Biến môi trường cần thiết
@@ -735,8 +799,18 @@ u_vibe/
 | `INNGEST_EVENT_KEY` | Inngest event key |
 | `NEXT_PUBLIC_APP_URL` | URL ứng dụng |
 | `NEXT_PUBLIC_SITE_URL` | URL site (SEO) |
+| `PAYOS_CLIENT_ID` | PayOS client ID |
+| `PAYOS_API_KEY` | PayOS API key |
+| `PAYOS_CHECKSUM_KEY` | PayOS checksum key để xác thực webhook |
 
-### 9.3 CI/CD
+### 9.3 PayOS Webhook
+
+- Webhook URL production: `https://<domain>/api/webhooks/payos`
+- Khi test local cần public tunnel (ví dụ ngrok/cloudflared) vì PayOS phải gọi được endpoint qua internet
+- `NEXT_PUBLIC_APP_URL` cần trỏ đúng domain/tunnel để PayOS redirect về `/api/payments/payos/return`
+- Thanh toán thành công sẽ đưa user về `/billing` để xem credit và payment history
+
+### 9.4 CI/CD
 
 - **Platform**: Vercel (tự động deploy khi push lên GitHub)
 - **Preview**: Mỗi PR tạo preview deployment riêng
@@ -753,7 +827,8 @@ u_vibe/
 3. **AI đa năng**: Hỗ trợ 2 đầu vào (text, image) với prompt chuyên biệt
 4. **Sandbox an toàn**: Code chạy trong E2B isolated sandbox
 5. **UX tốt**: Real-time polling, scroll thông minh, stop/continue, đa ngôn ngữ
-6. **Scalable**: Event-driven architecture cho phép xử lý nhiều request song song
+6. **Thanh toán nội địa**: PayOS credit pack, billing history, admin payment logs
+7. **Scalable**: Event-driven architecture cho phép xử lý nhiều request song song
 
 ### Công nghệ cốt lõi:
 - **Frontend**: Next.js + React + TanStack React Query + Shadcn UI
@@ -761,6 +836,7 @@ u_vibe/
 - **AI Pipeline**: Inngest + @inngest/agent-kit + OpenAI (GPT-4.1/GPT-4o)
 - **Sandbox**: E2B Code Interpreter
 - **Auth**: Clerk
+- **Payments**: PayOS
 
 ---
 

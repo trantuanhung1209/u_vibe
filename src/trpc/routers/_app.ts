@@ -5,11 +5,13 @@ import { messagesRouter } from "@/modules/messages/server/procedures";
 import { usageRouter } from "@/modules/usage/server/procedures";
 import { figmaRouter } from "./figma";
 import { adminRouter } from "./admin";
+import { billingRouter } from "./billing";
 
 export const appRouter = createTRPCRouter({
   messages: messagesRouter,
   projects: projectsRouter,
   usage: usageRouter,
+  billing: billingRouter,
   figma: figmaRouter,
   admin: adminRouter,
 });

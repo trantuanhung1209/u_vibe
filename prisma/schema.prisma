@@ -82,6 +82,13 @@ model Usage {
   expire DateTime?
 }
 
+model CreditBalance {
+  userId    String   @id
+  credits   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model CreditPayment {
   id            String              @id @default(uuid())
   orderCode     BigInt              @unique

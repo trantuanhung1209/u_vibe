@@ -35,6 +35,9 @@ export const Navbar = () => {
                             </div>
                         </SignedOut>
                         <SignedIn>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/billing">Billing</Link>
+                            </Button>
                             <UserControl showName />
                         </SignedIn>
                     </div>
