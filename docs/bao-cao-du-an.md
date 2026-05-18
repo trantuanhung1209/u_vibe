@@ -29,6 +29,7 @@
 - **Live Preview**: Xem kết quả trực tiếp trong trình duyệt qua E2B Sandbox
 - **Hỗ trợ đa ngôn ngữ**: AI trả lời theo ngôn ngữ người dùng sử dụng
 - **Dừng/Tiếp tục sinh code**: Người dùng có thể dừng quá trình sinh code và tiếp tục bất cứ lúc nào
+- **Thanh toán PayOS**: Mua credit một lần, cộng dồn paid credits và xem lịch sử billing
 - **Tải xuống dự án**: Xuất code thành file ZIP
 
 ---
@@ -398,6 +399,35 @@ Người dùng          Frontend                Backend (tRPC)           Inngest
     │ 7. UI hiện       │◄──────────────────────│                      │                     │
     │ nút "Continue"   │                         │                      │                     │
 
+=== LUỒNG TIẾP TỤC (CONTINUE) ===
+
+Người dùng          Frontend                Backend (tRPC)           Inngest              Database
+    │                  │                         │                      │                     │
+    │ 1. Click         │                         │                      │                     │
+    │ "Continue"       │                         │                      │                     │
+    │ ────────────────►│                         │                      │                     │
+    │                  │ 2. messages              │                      │                     │
+    │                  │ .continueGeneration      │                      │                     │
+    │                  │ ──────────────────────►│                      │                     │
+    │                  │                         │ 3. Xóa message       │                     │
+    │                  │                         │ "Generation stopped" │                     │
+    │                  │                         │ ───────────────────────────────────────────►│
+    │                  │                         │                      │                     │
+    │                  │                         │ 4. Tìm last USER     │                     │
+    │                  │                         │ message              │                     │
+    │                  │                         │ ───────────────────────────────────────────►│
+    │                  │                         │                      │                     │
+    │                  │                         │ 5. inngest.send()    │                     │
+    │                  │                         │ "code-agent/run"     │                     │
+    │                  │                         │ (dùng lại prompt cũ) │                     │
+    │                  │                         │ ───────────────────►│                     │
+    │                  │                         │                      │                     │
+    │ 6. UI hiện       │◄──────────────────────│                      │ 7. AI chạy lại     │
+    │ loading +        │                         │                      │ từ đầu             │
+    │ nút Stop         │                         │                      │                     │
+
+```
+
 ### 5.4 Luồng thanh toán PayOS (mua credit)
 
 ```
@@ -447,36 +477,7 @@ Người dùng            Frontend                 Backend (API Routes)         
 - `applyPaidCreditPayment()` đảm bảo idempotency: cùng `orderCode` chỉ cộng credit một lần.
 - Nếu user hủy thanh toán, `GET /api/payments/payos/cancel` cập nhật trạng thái `CANCELLED` và chuyển về `/pricing?payment=cancelled`.
 
-
-=== LUỒNG TIẾP TỤC (CONTINUE) ===
-
-Người dùng          Frontend                Backend (tRPC)           Inngest              Database
-    │                  │                         │                      │                     │
-    │ 1. Click         │                         │                      │                     │
-    │ "Continue"       │                         │                      │                     │
-    │ ────────────────►│                         │                      │                     │
-    │                  │ 2. messages              │                      │                     │
-    │                  │ .continueGeneration      │                      │                     │
-    │                  │ ──────────────────────►│                      │                     │
-    │                  │                         │ 3. Xóa message       │                     │
-    │                  │                         │ "Generation stopped" │                     │
-    │                  │                         │ ───────────────────────────────────────────►│
-    │                  │                         │                      │                     │
-    │                  │                         │ 4. Tìm last USER     │                     │
-    │                  │                         │ message              │                     │
-    │                  │                         │ ───────────────────────────────────────────►│
-    │                  │                         │                      │                     │
-    │                  │                         │ 5. inngest.send()    │                     │
-    │                  │                         │ "code-agent/run"     │                     │
-    │                  │                         │ (dùng lại prompt cũ) │                     │
-    │                  │                         │ ───────────────────►│                     │
-    │                  │                         │                      │                     │
-    │ 6. UI hiện       │◄──────────────────────│                      │ 7. AI chạy lại     │
-    │ loading +        │                         │                      │ từ đầu             │
-    │ nút Stop         │                         │                      │                     │
-```
-
-### 5.4 Luồng Upload hình ảnh
+### 5.5 Luồng Upload hình ảnh
 
 ```
 Người dùng          Frontend                API Route (/api/upload)        Backend (tRPC)
@@ -509,7 +510,7 @@ Người dùng          Frontend                API Route (/api/upload)        B
     │                  │                         │              _PROMPT         │
 ```
 
-### 5.5 Luồng xác thực (Authentication)
+### 5.6 Luồng xác thực (Authentication)
 
 ```
 Người dùng          Frontend               Clerk                  Middleware              Backend
