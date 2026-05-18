@@ -39,6 +39,8 @@ Cookie: __session=<clerk_session_token>
 ├── projects.*       # Project management
 ├── messages.*       # Chat messages
 ├── usage.*          # Usage tracking
+├── billing.*        # Billing summary and payment history
+├── admin.*          # Admin analytics and payment logs
 └── figma.*          # Figma integration (deprecated)
 ```
 
@@ -194,7 +196,7 @@ const project = await trpc.projects.create.mutate({
 **Side Effects:**
 - Creates initial USER message
 - Triggers `code-agent/run` Inngest event
-- Deducts credits from user's usage
+- Deducts 1 credit: paid credits first, then free quota
 
 **Errors:**
 - `401 UNAUTHORIZED` - Not authenticated
@@ -360,7 +362,7 @@ const message = await trpc.messages.create.mutate({
 
 **Side Effects:**
 - Triggers `code-agent/run` Inngest event
-- Deducts credits from user's usage
+- Deducts 1 credit: paid credits first, then free quota
 - AI generates response message asynchronously
 
 **Errors:**
@@ -387,9 +389,14 @@ Check remaining credits and usage limits.
 **Output:**
 ```typescript
 {
-  points: number;
-  expire: Date | null;
-} | null
+  remainingPoints: number;
+  consumedPoints: number;
+  msBeforeNext: number;
+  isFirstInDuration: boolean;
+  paidCredits: number;
+  freeCredits: number;
+  isPro: boolean;
+}
 ```
 
 **Example Request:**
@@ -400,18 +407,72 @@ const usage = await trpc.usage.status.query();
 **Example Response:**
 ```json
 {
-  "points": 8500,
-  "expire": "2026-02-28T23:59:59Z"
+  "remainingPoints": 189,
+  "consumedPoints": 11,
+  "msBeforeNext": 2052000000,
+  "isFirstInDuration": false,
+  "paidCredits": 100,
+  "freeCredits": 89,
+  "isPro": true
 }
-```
-
-Or if no usage record exists:
-```json
-null
 ```
 
 **Errors:**
 - `401 UNAUTHORIZED` - Not authenticated
+
+---
+
+## 4. Billing Router
+
+### `billing.summary` - Get Billing Summary
+
+Returns the current user's credit balance and recent PayOS payment history.
+
+**Type:** `query`
+
+**Input:**
+```typescript
+// No input required
+```
+
+**Output:**
+```typescript
+{
+  creditPack: {
+    id: string;
+    name: string;
+    credits: number;
+    amount: number;
+    currency: "VND";
+    description: string;
+  };
+  usage: {
+    consumedPoints: number;
+    remainingPoints: number;
+    msBeforeNext: number;
+    paidCredits: number;
+    freeCredits: number;
+    isPro: boolean;
+    expire: Date | null;
+  };
+  payments: Array<{
+    id: string;
+    orderCode: string;
+    amount: number;
+    credits: number;
+    status: "PENDING" | "PAID" | "CANCELLED" | "EXPIRED" | "FAILED";
+    payosStatus: string | null;
+    createdAt: Date;
+    paidAt: Date | null;
+  }>;
+}
+```
+
+**Credit Rules:**
+- Each prompt costs 1 credit.
+- Paid credits are consumed before free credits.
+- Paid credits stack across purchases and do not reset.
+- Free credits reset every 30 days.
 
 ---
 
@@ -501,6 +562,52 @@ Internal endpoint for Inngest event processing. Not for direct use.
 
 ---
 
+### `POST /api/payments/payos/checkout` - Create PayOS Checkout
+
+Creates a PayOS payment link for the fixed credit pack.
+
+**Authentication:** Required (Clerk)
+
+**Response:**
+```typescript
+{
+  checkoutUrl: string;
+}
+```
+
+**Credit Pack:**
+- Amount: `20,000 VND`
+- Credits: `100`
+- Purchase type: one-time, stackable
+
+---
+
+### `GET /api/payments/payos/return` - PayOS Return URL
+
+PayOS redirects the user here after checkout. The server checks the PayOS order status and redirects to `/billing`.
+
+**Redirects:**
+- `/billing?payment=success` when PayOS confirms the order is paid
+- `/billing?payment=pending` when confirmation is not available yet
+
+---
+
+### `GET /api/payments/payos/cancel` - PayOS Cancel URL
+
+Marks a pending local payment as cancelled when the user cancels checkout, then redirects to `/pricing?payment=cancelled`.
+
+---
+
+### `POST /api/webhooks/payos` - PayOS Webhook
+
+Receives PayOS payment notifications, verifies the signature, marks the `CreditPayment` as PAID, and adds credits to `CreditBalance`.
+
+**Authentication:** PayOS checksum signature
+
+**Idempotency:** A given `orderCode` is applied only once, even if PayOS retries the webhook or the return URL is visited multiple times.
+
+---
+
 ## WebSocket / Subscriptions
 
 tRPC supports subscriptions for real-time updates. Currently not implemented but can be added:
@@ -522,7 +629,9 @@ messages.onUpdate.subscribe(
 ## Rate Limiting
 
 ### Usage-Based Limits
-- Each API call (mutation) deducts credits
+- Each generation mutation deducts 1 credit
+- Paid credits are consumed before free credits
+- Paid credits do not reset; free credits reset every 30 days
 - Check remaining credits via `usage.status`
 - Queries (getMany, getOne) are free
 
@@ -555,6 +664,8 @@ import { trpc } from '@/trpc/client';
 // Queries (GET)
 const projects = await trpc.projects.getMany.query();
 const project = await trpc.projects.getOne.query({ id: '...' });
+const usage = await trpc.usage.status.query();
+const billing = await trpc.billing.summary.query();
 
 // Mutations (POST/PUT/DELETE)
 const newProject = await trpc.projects.create.mutate({

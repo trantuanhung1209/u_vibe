@@ -272,6 +272,8 @@ if (msg.hasImage && msg.imageUrl) {
 
 **Story:** As the system, I need to track and limit API usage per user
 
+> Current implementation update (May 2026): the original usage system was upgraded to a PayOS credit model. `Usage` now tracks free quota usage/reset, while `CreditBalance` stores paid credits that stack across purchases and do not reset. Each prompt costs 1 credit; paid credits are consumed before free credits.
+
 **Tasks:**
 
 - [x] Create Usage model in database
@@ -294,21 +296,19 @@ model Usage {
 **Implementation:**
 
 ```typescript
-export async function consumeCredits(cost: number = 150) {
+export async function consumeCredits() {
   const { userId } = await auth();
 
-  const usage = await prisma.usage.findUnique({
-    where: { key: userId },
+  const paid = await prisma.creditBalance.updateMany({
+    where: { userId, credits: { gte: 1 } },
+    data: { credits: { decrement: 1 } },
   });
 
-  if (!usage || usage.points < cost) {
-    throw new Error("Insufficient credits");
+  if (paid.count > 0) {
+    return;
   }
 
-  await prisma.usage.update({
-    where: { key: userId },
-    data: { points: usage.points - cost },
-  });
+  await getUsageTracker().consume(userId, 1);
 }
 ```
 
@@ -319,6 +319,7 @@ export async function consumeCredits(cost: number = 150) {
 - ✅ Users can check remaining credits
 - ✅ Requests fail when credits exhausted
 - ✅ Expiry date is enforced
+- ✅ Current billing flow supports PayOS one-time credit purchases
 
 **Time:** 7 hours
 
@@ -434,7 +435,8 @@ export async function consumeCredits(cost: number = 150) {
 - [ ] Migrate images to external storage
 - [ ] Add AI response quality scoring
 - [ ] Implement prompt versioning
-- [ ] Create usage dashboard for users
+- [x] Create billing dashboard for users (`/billing`)
+- [x] Add admin payment logs for PayOS purchases
 - [ ] Add retry mechanism for failed generations
 
 ---
@@ -451,7 +453,7 @@ _(Before/after showing design screenshot and generated code)_
 
 ### Usage Dashboard
 
-_(Credits remaining and usage history)_
+_(Current: `/billing` shows account identity, remaining credits, paid/free split, and PayOS payment history)_
 
 ---
 
@@ -462,13 +464,16 @@ _(Credits remaining and usage history)_
 - **AI Model:** GPT-4 with Vision (OpenAI)
 - **Image Storage:** Base64 in PostgreSQL (temporary)
 - **Usage Tracking:** PostgreSQL
+- **Payments:** PayOS credit packs
 
 ### New Environment Variables
 
 ```bash
 OPENAI_API_KEY="sk-..."
 NEXT_PUBLIC_MAX_IMAGE_SIZE=5242880  # 5MB
-DEFAULT_USER_CREDITS=10000
+PAYOS_CLIENT_ID="..."
+PAYOS_API_KEY="..."
+PAYOS_CHECKSUM_KEY="..."
 ```
 
 ---

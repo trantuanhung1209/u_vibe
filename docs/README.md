@@ -14,6 +14,7 @@ Complete documentation of the PostgreSQL database structure:
 - Table descriptions with all columns
 - Relationships and foreign keys
 - Sample queries
+- Credit and payment tables (`Usage`, `CreditBalance`, `CreditPayment`)
 - Migration history
 - Indexes and constraints
 
@@ -35,6 +36,7 @@ Comprehensive API documentation for tRPC and REST endpoints:
 - Authentication requirements
 - Error codes
 - Usage examples (TypeScript, React, cURL)
+- Billing, PayOS checkout, and webhook endpoints
 
 **Use this when:**
 - Integrating with the API
@@ -111,6 +113,8 @@ Week 5-6 (Jan 29 - Feb 11, 2026)
 - Image upload feature
 - Vision API integration
 - Usage tracking system
+
+> Current implementation note: usage tracking has since been upgraded to a PayOS credit system. Free credits reset every 30 days, while paid credits stack in `CreditBalance` and do not reset.
 
 ---
 
@@ -217,6 +221,7 @@ Week 7-8 (Feb 12-25, 2026)
 - [E2B Docs](https://e2b.dev/docs)
 - [Inngest Docs](https://www.inngest.com/docs)
 - [Clerk Docs](https://clerk.com/docs)
+- [PayOS Docs](https://payos.vn/docs/)
 - [OpenAI API Docs](https://platform.openai.com/docs)
 
 ### Tools
@@ -230,10 +235,10 @@ Week 7-8 (Feb 12-25, 2026)
 
 | Document | Last Updated | Status |
 |----------|-------------|--------|
-| README.md | Jan 20, 2026 | ✅ Current |
-| DATABASE-SCHEMA.md | Jan 20, 2026 | ✅ Current |
-| API-SPEC.md | Jan 20, 2026 | ✅ Current |
-| ARCHITECTURE.md | Jan 20, 2026 | ✅ Current |
+| README.md | May 18, 2026 | ✅ Current |
+| DATABASE-SCHEMA.md | May 18, 2026 | ✅ Current |
+| API-SPEC.md | May 18, 2026 | ✅ Current |
+| ARCHITECTURE.md | May 18, 2026 | ✅ Current |
 | SPRINT-01.md | Jan 14, 2026 | ✅ Final |
 | SPRINT-02.md | Jan 28, 2026 | ✅ Final |
 | SPRINT-03.md | Feb 11, 2026 | ✅ Final |
@@ -256,5 +261,5 @@ Week 7-8 (Feb 12-25, 2026)
 
 ---
 
-**Last Updated:** January 20, 2026  
+**Last Updated:** May 18, 2026  
 **Maintained By:** [@trantuanhung1209](https://github.com/trantuanhung1209)

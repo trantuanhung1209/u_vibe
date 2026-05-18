@@ -398,6 +398,55 @@ Người dùng          Frontend                Backend (tRPC)           Inngest
     │ 7. UI hiện       │◄──────────────────────│                      │                     │
     │ nút "Continue"   │                         │                      │                     │
 
+### 5.4 Luồng thanh toán PayOS (mua credit)
+
+```
+Người dùng            Frontend                 Backend (API Routes)           PayOS               Database
+    │                    │                              │                       │                    │
+    │ 1. Click Buy        │                              │                       │                    │
+    │ credits (/pricing)  │                              │                       │                    │
+    │ ───────────────────►│ 2. POST /api/payments/       │                       │                    │
+    │                    │    payos/checkout            │                       │                    │
+    │                    │ ────────────────────────────►│ 3. Tạo CreditPayment  │                    │
+    │                    │                              │    (PENDING)          │                    │
+    │                    │                              │ ─────────────────────►│                    │
+    │                    │                              │ 4. Tạo payment link   │                    │
+    │                    │                              │    PayOS              │                    │
+    │                    │                              │ ─────────────────────►│                    │
+    │                    │                              │ 5. Trả checkoutUrl    │                    │
+    │                    │◄─────────────────────────────│                       │                    │
+    │ 6. Redirect user    │                              │                       │                    │
+    │ sang PayOS          │                              │                       │                    │
+    │──────────────────────────────────────────────────────────────────────────►│                    │
+    │                    │                              │                       │ 7. User thanh toán │
+    │                    │                              │                       │                    │
+    │                    │                              │ 8. PayOS gọi webhook  │                    │
+    │                    │                              │    /api/webhooks/     │                    │
+    │                    │                              │    payos              │                    │
+    │                    │                              │◄──────────────────────│                    │
+    │                    │                              │ 9. Verify webhook,    │                    │
+    │                    │                              │    update payment,    │                    │
+    │                    │                              │    applyPaidCredit    │                    │
+    │                    │                              │    Payment (idempotent)│                   │
+    │                    │                              │ ─────────────────────►│                    │
+    │                    │                              │                       │                    │
+    │ 10. PayOS redirect  │                              │                       │                    │
+    │ về /api/payments/   │                              │                       │                    │
+    │ payos/return        │                              │                       │                    │
+    │──────────────────────────────────────────────────────────────────────────►│                    │
+    │                    │                              │ 11. Server gọi PayOS  │                    │
+    │                    │                              │     get(orderCode),   │                    │
+    │                    │                              │     nếu PAID thì      │                    │
+    │                    │                              │     applyPaidCredit   │                    │
+    │                    │                              │     Payment           │                    │
+    │                    │                              │ 12. Redirect /billing │                    │
+    │◄─────────────────────────────────────────────────────────────────────────│                    │
+```
+
+**Ghi chú**:
+- `applyPaidCreditPayment()` đảm bảo idempotency: cùng `orderCode` chỉ cộng credit một lần.
+- Nếu user hủy thanh toán, `GET /api/payments/payos/cancel` cập nhật trạng thái `CANCELLED` và chuyển về `/pricing?payment=cancelled`.
+
 
 === LUỒNG TIẾP TỤC (CONTINUE) ===
 

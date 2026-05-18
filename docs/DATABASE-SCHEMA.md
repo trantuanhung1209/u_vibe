@@ -12,6 +12,28 @@ erDiagram
         datetime expire
     }
 
+    CreditBalance {
+        string userId PK
+        int credits
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    CreditPayment {
+        uuid id PK
+        bigint orderCode UK
+        string userId
+        int amount
+        int credits
+        enum status
+        string paymentLinkId
+        string checkoutUrl
+        json rawData
+        datetime paidAt
+        datetime createdAt
+        datetime updatedAt
+    }
+
     Project {
         uuid id PK
         string name
@@ -138,16 +160,58 @@ Generated code artifacts from AI, linked to assistant messages.
 ---
 
 ### 4. **Usage**
-Tracks AI API usage and credits per user.
+Tracks free quota usage per user. Free credits reset every 30 days.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `key` | String | PRIMARY KEY | User identifier (usually Clerk userId) |
-| `points` | Integer | NOT NULL | Remaining credits/points |
-| `expire` | DateTime | NULLABLE | Expiration date for credits |
+| `points` | Integer | NOT NULL | Free credits consumed in current cycle |
+| `expire` | DateTime | NULLABLE | Free quota reset time |
 
 **Indexes:**
 - Primary: `key`
+
+---
+
+### 5. **CreditBalance**
+Stores paid credits purchased through PayOS. Paid credits stack across purchases and do not reset.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `userId` | String | PRIMARY KEY | Clerk user ID |
+| `credits` | Integer | DEFAULT 0 | Paid credits remaining |
+| `createdAt` | DateTime | DEFAULT now() | Creation timestamp |
+| `updatedAt` | DateTime | AUTO UPDATE | Last update |
+
+**Indexes:**
+- Primary: `userId`
+
+---
+
+### 6. **CreditPayment**
+Stores PayOS checkout/payment logs for user billing and admin reconciliation.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY | Unique payment record |
+| `orderCode` | BigInt | UNIQUE, NOT NULL | PayOS order code |
+| `userId` | String | NOT NULL | Clerk user ID |
+| `amount` | Integer | NOT NULL | Payment amount in VND |
+| `credits` | Integer | NOT NULL | Credits to add when paid |
+| `description` | String | NOT NULL | PayOS payment description |
+| `status` | Enum | DEFAULT PENDING | PENDING/PAID/CANCELLED/EXPIRED/FAILED |
+| `paymentLinkId` | String | NULLABLE | PayOS payment link ID |
+| `checkoutUrl` | String | NULLABLE | PayOS checkout URL |
+| `payosStatus` | String | NULLABLE | PayOS status/description |
+| `rawData` | JSON | NULLABLE | Raw PayOS payload |
+| `paidAt` | DateTime | NULLABLE | Payment confirmation time |
+| `createdAt` | DateTime | DEFAULT now() | Creation timestamp |
+| `updatedAt` | DateTime | AUTO UPDATE | Last update |
+
+**Indexes:**
+- Primary: `id`
+- Unique: `orderCode`
+- Secondary: `userId`, `status`
 
 ---
 
@@ -225,12 +289,28 @@ VALUES (
 );
 ```
 
-### 4. Update Usage
+### 4. Consume Credit
 ```sql
-INSERT INTO "Usage" (key, points)
-VALUES ('user_123', 10000)
-ON CONFLICT (key) 
-DO UPDATE SET points = "Usage".points - 150;
+-- Paid credits are consumed first.
+UPDATE "CreditBalance"
+SET credits = credits - 1, "updatedAt" = NOW()
+WHERE "userId" = 'user_123' AND credits >= 1;
+
+-- If no paid credit was available, consume one free quota point.
+INSERT INTO "Usage" (key, points, expire)
+VALUES ('user_123', 1, NOW() + INTERVAL '30 days')
+ON CONFLICT (key)
+DO UPDATE SET points = "Usage".points + 1;
+```
+
+### 5. Apply PayOS Payment
+```sql
+INSERT INTO "CreditBalance" ("userId", credits, "updatedAt")
+VALUES ('user_123', 100, NOW())
+ON CONFLICT ("userId")
+DO UPDATE SET
+  credits = "CreditBalance".credits + 100,
+  "updatedAt" = NOW();
 ```
 
 ---
@@ -267,9 +347,14 @@ LIMIT 10;
 
 ### Check User Credits
 ```sql
-SELECT points, expire
-FROM "Usage"
-WHERE key = $1 AND (expire IS NULL OR expire > NOW());
+SELECT
+  COALESCE(cb.credits, 0) AS paid_credits,
+  GREATEST(30 - COALESCE(u.points, 0), 0) AS free_credits,
+  u.expire AS free_reset_at
+FROM (SELECT $1::text AS user_id) input
+LEFT JOIN "CreditBalance" cb ON cb."userId" = input.user_id
+LEFT JOIN "Usage" u ON u.key = input.user_id
+  AND (u.expire IS NULL OR u.expire > NOW());
 ```
 
 ---
@@ -285,6 +370,8 @@ WHERE key = $1 AND (expire IS NULL OR expire > NOW());
 | `20260105165704_usage` | 2026-01-05 | Added Usage table |
 | `20260108040649_add_message_metadata` | 2026-01-08 | Added metadata to Message |
 | `20260117143638_add_image_support` | 2026-01-17 | Added imageUrl, hasImage to Message |
+| `20260518120000_add_credit_payments` | 2026-05-18 | Added CreditPayment table and PayOS status enum |
+| `20260518133000_add_credit_balance` | 2026-05-18 | Added CreditBalance and migrated paid credits |
 
 ---
 
@@ -300,7 +387,9 @@ WHERE key = $1 AND (expire IS NULL OR expire > NOW());
 - Projects: Retained indefinitely (user-owned)
 - Messages: Cascade deleted with Project
 - Fragments: Cascade deleted with Message
-- Usage: Expired entries cleaned up monthly
+- Usage: Free quota can expire/reset by cycle
+- CreditBalance: Retained while user account exists
+- CreditPayment: Retained for billing history and reconciliation
 
 ### Backup Strategy
 - Daily automated backups

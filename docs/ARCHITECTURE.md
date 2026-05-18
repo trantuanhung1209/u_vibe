@@ -21,6 +21,7 @@ graph TB
         H[Project Module]
         I[Message Module]
         J[Usage Module]
+        P[Billing Module]
     end
 
     subgraph "External Services"
@@ -29,6 +30,7 @@ graph TB
         M[Inngest Platform]
         N[OpenAI API]
         O[E2B Sandboxes]
+        Q[PayOS]
     end
 
     A --> B
@@ -41,9 +43,12 @@ graph TB
     G --> H
     G --> I
     G --> J
+    G --> P
     H --> L
     I --> L
     J --> L
+    P --> L
+    P --> Q
     I --> M
     H --> M
     M --> N
@@ -72,6 +77,7 @@ graph TB
 │  │  - Home      │  │  - UI/shadcn │  │  - tRPC      │     │
 │  │  - Project   │  │  - CodeView  │  │  - Theme     │     │
 │  │  - Pricing   │  │  - FileTree  │  │  - Mobile    │     │
+│  │  - Billing   │  │              │  │              │     │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
 │         │                 │                  │              │
 │         └─────────────────┼──────────────────┘              │
@@ -106,6 +112,8 @@ graph TB
 │  │  │  tRPC Routes    │  │  REST Routes    │         │     │
 │  │  │  /api/trpc/     │  │  /api/upload    │         │     │
 │  │  │                 │  │  /api/inngest   │         │     │
+│  │  │                 │  │  /api/payments  │         │     │
+│  │  │                 │  │  /api/webhooks  │         │     │
 │  │  └────────┬────────┘  └────────┬────────┘         │     │
 │  └───────────┼──────────────────────┼──────────────────┘     │
 │              │                      │                        │
@@ -132,6 +140,7 @@ graph TB
 │                   POSTGRESQL DATABASE                       │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
 │  │ Project  │  │ Message  │  │ Fragment │  │  Usage   │   │
+│  │CreditBal │  │CreditPay │  │          │  │          │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
 
@@ -204,7 +213,7 @@ sequenceDiagram
     
     UI->>tRPC: projects.create({ value, imageUrl })
     tRPC->>tRPC: Check auth (Clerk)
-    tRPC->>DB: Check usage/credits
+    tRPC->>DB: Check paid/free credits
     DB-->>tRPC: Credits available
     tRPC->>DB: INSERT Project & Message
     DB-->>tRPC: Project created
@@ -243,7 +252,7 @@ sequenceDiagram
     
     Worker->>DB: INSERT Fragment & Assistant Message
     DB-->>Worker: Saved
-    Worker->>DB: Update usage
+    Worker->>DB: Save generated result
     
     Worker-->>Inngest: Job complete
     
@@ -262,7 +271,8 @@ src/
 │   ├── (home)/            # Route group (public)
 │   │   ├── page.tsx       # Landing page
 │   │   ├── layout.tsx     # Public layout
-│   │   ├── pricing/       # Pricing page
+│   │   ├── pricing/       # PayOS credit purchase
+│   │   ├── billing/       # Credit balance and payment history
 │   │   ├── sign-in/       # Auth pages
 │   │   └── sign-up/
 │   ├── projects/
@@ -271,6 +281,8 @@ src/
 │   ├── api/               # API routes
 │   │   ├── upload/        # REST endpoint
 │   │   ├── inngest/       # Webhook
+│   │   ├── payments/      # PayOS checkout/return/cancel
+│   │   ├── webhooks/      # PayOS webhook
 │   │   └── trpc/          # tRPC handler
 │   ├── layout.tsx         # Root layout
 │   ├── globals.css        # Global styles
@@ -305,6 +317,8 @@ src/
 │   ├── server.tsx       # Server caller
 │   └── routers/
 │       ├── _app.ts      # Root router
+│       ├── admin.ts     # Admin dashboard and payment logs
+│       ├── billing.ts   # Billing summary and payment history
 │       └── figma.ts     # (deprecated)
 │
 ├── inngest/             # Background jobs
@@ -317,6 +331,8 @@ src/
 │   ├── db.ts           # Prisma client singleton
 │   ├── metadata.ts     # SEO helpers
 │   ├── usage.ts        # Credit management
+│   ├── payos.ts        # PayOS SDK client
+│   ├── payments/       # Credit pack and payment utilities
 │   └── utils.ts        # General utils
 │
 ├── contexts/            # React contexts
@@ -353,6 +369,7 @@ Node.js 20+
 ├── Prisma 6.x (ORM)
 ├── PostgreSQL 16 (Database)
 ├── Clerk (Authentication)
+├── PayOS (Payments)
 └── Next.js API Routes (REST)
 ```
 
@@ -362,6 +379,7 @@ Serverless
 ├── Vercel (Hosting)
 ├── Inngest (Background Jobs)
 ├── E2B (Code Sandboxes)
+├── PayOS (Credit Checkout)
 └── OpenAI (AI Models)
 ```
 
@@ -389,10 +407,10 @@ Serverless
                   │
         ┌─────────┼─────────┐
         │         │         │
-┌───────▼────┐ ┌──▼──────┐ ┌▼────────────┐
-│ PostgreSQL │ │ Inngest │ │    Clerk    │
-│  (Neon)    │ │ Platform│ │   (Auth)    │
-└────────────┘ └────┬────┘ └─────────────┘
+┌───────▼────┐ ┌──▼──────┐ ┌▼────────────┐ ┌──────────┐
+│ PostgreSQL │ │ Inngest │ │    Clerk    │ │  PayOS   │
+│  (Neon)    │ │ Platform│ │   (Auth)    │ │ Payments │
+└────────────┘ └────┬────┘ └─────────────┘ └──────────┘
                     │
               ┌─────┴─────┐
               │           │
@@ -430,6 +448,7 @@ Serverless
 │     ✓ Input Validation (Zod)           │
 │     ✓ Type Safety                      │
 │     ✓ Protected Procedures             │
+│     ✓ PayOS webhook signature verify   │
 │                                         │
 │  5. Database (Prisma)                  │
 │     ✓ Parameterized Queries            │

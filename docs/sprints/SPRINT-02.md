@@ -371,6 +371,8 @@ Planned stories:
 4. Support for iterative conversations
 5. Usage tracking system
 
+Current implementation note: usage tracking later evolved into a credit system with free quota reset and PayOS paid credits that stack and do not reset.
+
 ---
 
 **Sprint Completed:** ✅ January 28, 2026  

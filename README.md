@@ -14,6 +14,8 @@ Uside Vibe is a full-stack serverless application built with Next.js that lets y
 - **🔒 Secure Sandboxes**: Code runs in isolated E2B environments with Next.js pre-installed
 - **⚡ Real-time Updates**: See your app build in real-time with live streaming
 - **📝 Project Management**: Save, edit, and iterate on multiple projects
+- **💳 PayOS Credits**: Buy one-time credit packs; paid credits stack and do not reset
+- **📊 Billing Dashboard**: Users can view account, credits, and payment history
 - **🎨 Beautiful UI**: Modern interface built with shadcn/ui components
 - **💾 Persistent Storage**: PostgreSQL database for projects and chat history
 
@@ -37,6 +39,7 @@ Uside Vibe uses a **hybrid serverless architecture** with distributed execution:
 │  API Layer (tRPC + REST)                    │
 │  • Type-safe mutations & queries            │
 │  • Image upload API (/api/upload)          │
+│  • PayOS checkout & webhook APIs           │
 │  • Authentication middleware (Clerk)       │
 └─────────────────┬───────────────────────────┘
                   │
@@ -60,7 +63,7 @@ Uside Vibe uses a **hybrid serverless architecture** with distributed execution:
                   │
 ┌─────────────────▼───────────────────────────┐
 │  Data Layer (PostgreSQL + Prisma)          │
-│  • Projects, Messages, Usage tracking      │
+│  • Projects, Messages, Credits, Payments   │
 │  • Image metadata storage                  │
 └─────────────────────────────────────────────┘
 ```
@@ -123,6 +126,7 @@ sequenceDiagram
 - **Database**: PostgreSQL
 - **ORM**: Prisma
 - **Authentication**: Clerk
+- **Payments**: PayOS
 - **Background Jobs**: Inngest
 - **File Upload**: Next.js API Routes (base64)
 
@@ -142,6 +146,7 @@ sequenceDiagram
 - E2B API key
 - Inngest account (free tier available)
 - Clerk account for authentication
+- PayOS merchant account for payments
 
 ### Installation
 
@@ -180,7 +185,13 @@ CLERK_SECRET_KEY="sk_..."
 NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
 
+# PayOS Payments
+PAYOS_CLIENT_ID="..."
+PAYOS_API_KEY="..."
+PAYOS_CHECKSUM_KEY="..."
+
 # Site URL (for production)
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_SITE_URL="https://vibe.uside.studio"
 ```
 
@@ -233,7 +244,8 @@ uside-vibe/
 │   ├── app/                  # Next.js App Router
 │   │   ├── (home)/          # Public routes
 │   │   │   ├── page.tsx     # Landing page
-│   │   │   ├── pricing/     # Pricing page
+│   │   │   ├── pricing/     # PayOS credit purchase
+│   │   │   ├── billing/     # Account, credits, payment history
 │   │   │   ├── sign-in/     # Auth pages
 │   │   │   └── sign-up/
 │   │   ├── projects/
@@ -241,6 +253,8 @@ uside-vibe/
 │   │   ├── api/
 │   │   │   ├── upload/      # Image upload endpoint
 │   │   │   ├── inngest/     # Inngest webhook
+│   │   │   ├── payments/    # PayOS checkout/return/cancel
+│   │   │   ├── webhooks/    # PayOS webhook
 │   │   │   └── trpc/        # tRPC handler
 │   │   ├── layout.tsx       # Root layout
 │   │   └── globals.css      # Global styles
@@ -266,9 +280,14 @@ uside-vibe/
 │   │   ├── init.ts          # tRPC config
 │   │   ├── client.tsx       # Client provider
 │   │   └── routers/
-│   │       └── _app.ts      # Root router
+│   │       ├── _app.ts      # Root router
+│   │       ├── admin.ts     # Admin analytics and payment logs
+│   │       └── billing.ts   # Billing summary
 │   ├── lib/
 │   │   ├── db.ts            # Prisma client
+│   │   ├── usage.ts         # Free/paid credit consumption
+│   │   ├── payos.ts         # PayOS SDK client
+│   │   ├── payments/        # Credit pack and payment utilities
 │   │   ├── metadata.ts      # SEO helpers
 │   │   └── utils.ts
 │   ├── contexts/
@@ -415,12 +434,14 @@ Production sandboxes are automatically managed by E2B.
 
 ## 📊 Usage Tracking
 
-The app tracks OpenAI API usage:
-- Token consumption per request
-- Cost calculation
-- Per-user limits (configurable)
+The app uses a credit system:
+- Each prompt consumes 1 credit
+- Free users receive 30 free credits that reset every 30 days
+- Paid credits are purchased through PayOS, stack across purchases, and do not reset
+- Paid credits are consumed before free credits
+- When paid credits reach 0, the user automatically falls back to the free quota
 
-View usage in the Usage module.
+Users can view credit balance and payment history at `/billing`. Admins can view PayOS payment logs in `/admin`.
 
 ## 🔐 Security
 
@@ -450,8 +471,13 @@ MIT License - feel free to use this project for learning or commercial purposes.
 
 **Issue**: "AI not responding"
 - Verify OPENAI_API_KEY is valid
-- Check API credits
+- Check credit balance at `/billing`
 - View Inngest logs
+
+**Issue**: "PayOS webhook not detected"
+- Deploy the webhook route or expose local dev with a public tunnel
+- Set PayOS webhook URL to `/api/webhooks/payos`
+- Ensure `NEXT_PUBLIC_APP_URL` points to the current domain/tunnel
 
 **Issue**: "Database connection failed"
 - Check DATABASE_URL format
@@ -472,6 +498,7 @@ MIT License - feel free to use this project for learning or commercial purposes.
 - [E2B](https://e2b.dev/docs) - Code sandboxes
 - [Inngest](https://www.inngest.com/docs) - Background jobs
 - [Clerk](https://clerk.com/docs) - Authentication
+- [PayOS](https://payos.vn/docs/) - Payments
 - [shadcn/ui](https://ui.shadcn.com) - UI components
 
 ### Related Projects
