@@ -21,12 +21,11 @@
 
 ## 1. Giới thiệu tổng quan
 
-**Uside Vibe** là một nền tảng web cho phép người dùng tạo ứng dụng web (Next.js) thông qua giao tiếp bằng ngôn ngữ tự nhiên với AI. Người dùng chỉ cần mô tả ý tưởng bằng lời, tải ảnh thiết kế hoặc import từ Figma — hệ thống sẽ tự động sinh mã nguồn, chạy trong sandbox và hiển thị kết quả trực tiếp.
+**Uside Vibe** là một nền tảng web cho phép người dùng tạo ứng dụng web (Next.js) thông qua giao tiếp bằng ngôn ngữ tự nhiên với AI. Người dùng chỉ cần mô tả ý tưởng bằng lời hoặc tải ảnh thiết kế — hệ thống sẽ tự động sinh mã nguồn, chạy trong sandbox và hiển thị kết quả trực tiếp.
 
 ### Tính năng nổi bật:
 - **Chat-to-Code**: Mô tả bằng lời → AI sinh code Next.js hoàn chỉnh
 - **Image-to-Code**: Tải ảnh thiết kế → AI chuyển thành code
-- **Figma-to-Code**: Import trực tiếp từ Figma URL → sinh code tương ứng
 - **Live Preview**: Xem kết quả trực tiếp trong trình duyệt qua E2B Sandbox
 - **Hỗ trợ đa ngôn ngữ**: AI trả lời theo ngôn ngữ người dùng sử dụng
 - **Dừng/Tiếp tục sinh code**: Người dùng có thể dừng quá trình sinh code và tiếp tục bất cứ lúc nào
@@ -71,10 +70,10 @@
 │    ┌───────────┬───────┼───────┬──────────┐              │
 │    │           │       │       │          │              │
 │    ▼           ▼       ▼       ▼          ▼              │
-│ messages  projects  usage   figma     admin              │
-│ Router    Router    Router  Router    Router             │
-│    │           │       │       │          │              │
-│    └───────────┴───────┼───────┴──────────┘              │
+│ messages  projects  usage     admin                      │
+│ Router    Router    Router    Router                     │
+│    │           │       │          │                      │
+│    └───────────┴───────┼──────────┘                      │
 │                        │                                 │
 │              ┌─────────▼─────────┐                       │
 │              │    Prisma ORM     │                       │
@@ -152,7 +151,6 @@
 | **Inngest Cloud** | Quản lý event queue và background jobs |
 | **E2B** | Sandbox cloud để chạy code an toàn |
 | **Vercel** | Hosting và CI/CD |
-| **Figma API** | Lấy dữ liệu thiết kế từ Figma |
 
 ---
 
@@ -203,7 +201,7 @@
 | `content` | `String` | Nội dung tin nhắn |
 | `role` | `Enum (USER/ASSISTANT)` | Vai trò: người dùng hoặc AI |
 | `type` | `Enum (RESULT/ERROR)` | Loại: kết quả thành công hoặc lỗi |
-| `metadata` | `Json?` | Dữ liệu bổ sung (ví dụ: Figma schema) |
+| `metadata` | `Json?` | Dữ liệu bổ sung |
 | `imageUrl` | `String?` | URL hình ảnh đính kèm (base64) |
 | `hasImage` | `Boolean` | Có hình ảnh hay không |
 | `projectId` | `String (FK)` | Liên kết đến Project |
@@ -388,47 +386,7 @@ Người dùng          Frontend                Backend (tRPC)           Inngest
     │ nút Stop         │                         │                      │                     │
 ```
 
-### 5.4 Luồng Import từ Figma
-
-```
-Người dùng          Frontend                Backend (tRPC)           Figma API            Inngest
-    │                  │                         │                      │                     │
-    │ 1. Nhập Figma    │                         │                      │                     │
-    │ URL              │                         │                      │                     │
-    │ ────────────────►│                         │                      │                     │
-    │                  │ 2. figma.preview         │                      │                     │
-    │                  │ ──────────────────────►│                      │                     │
-    │                  │                         │ 3. Fetch design       │                     │
-    │                  │                         │ ───────────────────►│                     │
-    │                  │                         │◄────────────────────│                     │
-    │                  │                         │                      │                     │
-    │                  │                         │ 4. Normalize design   │                     │
-    │                  │                         │ → UI Schema           │                     │
-    │                  │                         │                      │                     │
-    │ 5. Xem preview   │◄──────────────────────│                      │                     │
-    │ (tên, kích thước │                         │                      │                     │
-    │  components)     │                         │                      │                     │
-    │                  │                         │                      │                     │
-    │ 6. Click         │                         │                      │                     │
-    │ "Generate"       │                         │                      │                     │
-    │ ────────────────►│                         │                      │                     │
-    │                  │ 7. figma                 │                      │                     │
-    │                  │ .generateFromFigma       │                      │                     │
-    │                  │ ──────────────────────►│                      │                     │
-    │                  │                         │ 8. Tạo Message       │                     │
-    │                  │                         │ + metadata (schema)   │                     │
-    │                  │                         │                      │                     │
-    │                  │                         │ 9. inngest.send()    │                     │
-    │                  │                         │ "code-agent/run"     │                     │
-    │                  │                         │ (isFigmaImport=true) │                     │
-    │                  │                         │ ───────────────────────────────────────────►│
-    │                  │                         │                      │                     │
-    │ 10. Chờ kết quả  │                         │                      │  11. AI sinh code   │
-    │ (polling)        │                         │                      │  dùng DESIGN_TO_    │
-    │                  │                         │                      │  CODE_PROMPT        │
-```
-
-### 5.5 Luồng Upload hình ảnh
+### 5.4 Luồng Upload hình ảnh
 
 ```
 Người dùng          Frontend                API Route (/api/upload)        Backend (tRPC)
@@ -461,7 +419,7 @@ Người dùng          Frontend                API Route (/api/upload)        B
     │                  │                         │              _PROMPT         │
 ```
 
-### 5.6 Luồng xác thực (Authentication)
+### 5.5 Luồng xác thực (Authentication)
 
 ```
 Người dùng          Frontend               Clerk                  Middleware              Backend
@@ -528,18 +486,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Sử dụng GPT-4o (hỗ trợ vision) với `IMAGE_TO_CODE_PROMPT`
 - Gửi message dạng multimodal: `[{type: "text"}, {type: "image_url"}]`
 
-### 6.3 Figma-to-Code (Sinh code từ Figma)
-
-**Mô tả**: Người dùng nhập Figma URL, hệ thống tự động lấy thiết kế và sinh code.
-
-**Xử lý kỹ thuật**:
-- Parse Figma URL → lấy `fileKey` và `nodeId`
-- Gọi Figma API để lấy design data
-- Normalize design thành UI Schema (chuẩn hóa layout, colors, components)
-- Chuyển UI Schema thành prompt text (kích thước, spacing, colors)
-- Gửi prompt đến Inngest với `isFigmaImport=true` → dùng `DESIGN_TO_CODE_PROMPT`
-
-### 6.4 Live Preview (Xem trước trực tiếp)
+### 6.3 Live Preview (Xem trước trực tiếp)
 
 **Mô tả**: Kết quả code được chạy và hiển thị trực tiếp trong trình duyệt.
 
@@ -550,7 +497,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Hỗ trợ chế độ Preview (xem demo) và Code (xem source code)
 - Timeout sandbox: 30 phút
 
-### 6.5 Dừng và Tiếp tục (Stop/Continue)
+### 6.4 Dừng và Tiếp tục (Stop/Continue)
 
 **Mô tả**: Người dùng có thể dừng quá trình sinh code đang chạy và tiếp tục lại sau.
 
@@ -559,7 +506,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - **Continue**: Xóa message ERROR → tìm message USER cuối cùng → gửi lại event `code-agent/run` với cùng prompt
 - Frontend: Nút Stop hiện khi đang generate, nút Continue hiện khi có message ERROR "stopped"
 
-### 6.6 Hỗ trợ đa ngôn ngữ
+### 6.5 Hỗ trợ đa ngôn ngữ
 
 **Mô tả**: AI tự động phát hiện ngôn ngữ của người dùng và trả lời bằng ngôn ngữ tương ứng.
 
@@ -569,7 +516,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Truyền message gốc của user kèm task summary đến response/title generators
 - Prompt chính (`PROMPT` cho code agent) vẫn giữ tiếng Anh để đảm bảo chất lượng code
 
-### 6.7 Quản lý Usage (Giới hạn sử dụng)
+### 6.6 Quản lý Usage (Giới hạn sử dụng)
 
 **Mô tả**: Hệ thống giới hạn số lần sinh code dựa trên gói người dùng.
 
@@ -581,7 +528,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Kiểm tra credits trước khi tạo message (`consumeCredits()`)
 - Pricing page sử dụng Clerk `<PricingTable>` component
 
-### 6.8 Tải xuống dự án (Download)
+### 6.7 Tải xuống dự án (Download)
 
 **Mô tả**: Người dùng có thể tải toàn bộ code đã sinh thành file ZIP.
 
@@ -590,7 +537,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Sử dụng thư viện `jszip` để đóng gói các file từ Fragment
 - Trả về file `.zip` cho client tải xuống
 
-### 6.9 Admin Dashboard
+### 6.8 Admin Dashboard
 
 **Mô tả**: Trang quản trị cho admin xem thống kê hệ thống.
 
@@ -600,7 +547,7 @@ Người dùng          Frontend               Clerk                  Middleware
 - Sử dụng `recharts` cho biểu đồ
 - Role được lấy từ Clerk session claims (`metadata.role`)
 
-### 6.10 Scroll thông minh trong chat
+### 6.9 Scroll thông minh trong chat
 
 **Mô tả**: Chat tự động scroll xuống khi có tin nhắn mới, nhưng giữ nguyên vị trí khi người dùng đang đọc lịch sử.
 
@@ -668,7 +615,6 @@ u_vibe/
 │   │   │       │   ├── message-form.tsx        # Form gửi tin nhắn
 │   │   │       │   ├── message-loading.tsx     # Loading animation
 │   │   │       │   ├── fragment-web.tsx        # Iframe preview sandbox
-│   │   │       │   ├── figma-import-dialog.tsx # Dialog import Figma
 │   │   │       │   ├── project-header.tsx      # Header project
 │   │   │       │   └── usage.tsx               # Hiển thị usage
 │   │   │       └── views/
@@ -691,8 +637,7 @@ u_vibe/
 │   │   ├── query-client.ts        # React Query client config
 │   │   └── routers/
 │   │       ├── _app.ts            # Root router (merge all routers)
-│   │       ├── admin.ts           # Admin router
-│   │       └── figma.ts           # Figma router
+│   │       └── admin.ts           # Admin router
 │   │
 │   ├── lib/                       # Shared utilities
 │   │   ├── db.ts                  # Prisma client (singleton)
@@ -700,9 +645,6 @@ u_vibe/
 │   │   ├── usage.ts               # Usage/credits system
 │   │   ├── metadata.ts            # SEO metadata generator
 │   │   ├── utils.ts               # General utilities (cn)
-│   │   ├── figma-client.ts        # Figma API client
-│   │   ├── design-normalizer.ts   # Figma → UI Schema
-│   │   ├── schema-to-prompt.ts    # UI Schema → AI Prompt
 │   │   └── download-utils.ts      # ZIP download utilities
 │   │
 │   ├── components/                # Shared UI components
@@ -791,7 +733,6 @@ u_vibe/
 | `E2B_API_KEY` | E2B Sandbox API key |
 | `INNGEST_SIGNING_KEY` | Inngest webhook signing key |
 | `INNGEST_EVENT_KEY` | Inngest event key |
-| `FIGMA_ACCESS_TOKEN` | Figma API access token |
 | `NEXT_PUBLIC_APP_URL` | URL ứng dụng |
 | `NEXT_PUBLIC_SITE_URL` | URL site (SEO) |
 
@@ -809,7 +750,7 @@ u_vibe/
 ### Điểm mạnh của dự án:
 1. **Kiến trúc hiện đại**: Next.js 15 App Router + tRPC + Inngest event-driven
 2. **Type-safe toàn bộ**: TypeScript + tRPC + Zod validation từ frontend đến backend
-3. **AI đa năng**: Hỗ trợ 3 đầu vào (text, image, Figma) với prompt chuyên biệt
+3. **AI đa năng**: Hỗ trợ 2 đầu vào (text, image) với prompt chuyên biệt
 4. **Sandbox an toàn**: Code chạy trong E2B isolated sandbox
 5. **UX tốt**: Real-time polling, scroll thông minh, stop/continue, đa ngôn ngữ
 6. **Scalable**: Event-driven architecture cho phép xử lý nhiều request song song
