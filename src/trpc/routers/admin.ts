@@ -1,72 +1,94 @@
+/**
+ * Admin Router
+ *
+ * Redis được dùng để cache các aggregation queries nặng.
+ *
+ * Các query như getStats, getProjectsChart, getUserActivity đều:
+ * - Gọi Clerk API (external HTTP request)
+ * - Chạy COUNT/GROUP BY trên toàn bộ database
+ * - Không cần real-time — admin chấp nhận data trễ 5 phút
+ *
+ * Cache strategy: TTL.LONG (5 phút)
+ * Invalidation: tự động hết hạn theo TTL (không cần manual invalidate)
+ *
+ * Các query có filter/pagination (getProjects, getPayments, getUsers)
+ * KHÔNG cache vì input thay đổi liên tục → cache key sẽ bùng nổ.
+ */
+
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import db from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
 import { requireAdmin } from "@/lib/auth";
+import { withCache, invalidateCacheByPattern, CACHE_KEYS, TTL } from "@/lib/redis-cache";
 
 export const adminRouter = createTRPCRouter({
-  // Lấy thống kê tổng quan
+  /**
+   * Thống kê tổng quan — cache 5 phút.
+   *
+   * Gọi Clerk API cho từng project → rất chậm nếu không cache.
+   * Cache key: "admin:stats"
+   */
   getStats: protectedProcedure.query(async () => {
     await requireAdmin();
 
-    const [
-      totalProjects,
-      totalMessages,
-      totalFragments,
-      recentProjects,
-    ] = await Promise.all([
-      db.project.count(),
-      db.message.count(),
-      db.fragment.count(),
-      db.project.findMany({
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          userId: true,
-          createdAt: true,
-          _count: {
-            select: { messages: true },
-          },
-        },
-      }),
-    ]);
+    return withCache(
+      CACHE_KEYS.adminStats(),
+      async () => {
+        const [totalProjects, totalMessages, totalFragments, recentProjects] =
+          await Promise.all([
+            db.project.count(),
+            db.message.count(),
+            db.fragment.count(),
+            db.project.findMany({
+              take: 10,
+              orderBy: { createdAt: "desc" },
+              select: {
+                id: true,
+                name: true,
+                userId: true,
+                createdAt: true,
+                _count: { select: { messages: true } },
+              },
+            }),
+          ]);
 
-    // Lấy thông tin user từ Clerk cho mỗi project
-    const client = await clerkClient();
-    const recentProjectsWithUser = await Promise.all(
-      recentProjects.map(async (project) => {
-        try {
-          const user = await client.users.getUser(project.userId);
-          return {
-            ...project,
-            user: {
-              id: user.id,
-              firstName: user.firstName || "",
-              lastName: user.lastName || "",
-              imageUrl: user.imageUrl,
-              email: user.emailAddresses[0]?.emailAddress || "",
-            },
-          };
-        } catch {
-          // Nếu không lấy được user, trả về null
-          return {
-            ...project,
-            user: null,
-          };
-        }
-      })
+        const client = await clerkClient();
+        const recentProjectsWithUser = await Promise.all(
+          recentProjects.map(async (project) => {
+            try {
+              const user = await client.users.getUser(project.userId);
+              return {
+                ...project,
+                user: {
+                  id: user.id,
+                  firstName: user.firstName || "",
+                  lastName: user.lastName || "",
+                  imageUrl: user.imageUrl,
+                  email: user.emailAddresses[0]?.emailAddress || "",
+                },
+              };
+            } catch {
+              return { ...project, user: null };
+            }
+          })
+        );
+
+        return {
+          totalProjects,
+          totalMessages,
+          totalFragments,
+          recentProjects: recentProjectsWithUser,
+        };
+      },
+      { ttl: TTL.LONG } // Cache 5 phút
     );
-
-    return {
-      totalProjects,
-      totalMessages,
-      totalFragments,
-      recentProjects: recentProjectsWithUser,
-    };
   }),
 
+  /**
+   * Danh sách payments — KHÔNG cache vì có filter/pagination.
+   * Mỗi combination của input tạo ra cache key khác nhau → lãng phí memory.
+   */
   getPayments: protectedProcedure
     .input(
       z.object({
@@ -106,7 +128,6 @@ export const adminRouter = createTRPCRouter({
         payments.map(async (payment) => {
           try {
             const user = await client.users.getUser(payment.userId);
-
             return {
               ...payment,
               orderCode: payment.orderCode.toString(),
@@ -119,22 +140,17 @@ export const adminRouter = createTRPCRouter({
               },
             };
           } catch {
-            return {
-              ...payment,
-              orderCode: payment.orderCode.toString(),
-              user: null,
-            };
+            return { ...payment, orderCode: payment.orderCode.toString(), user: null };
           }
         })
       );
 
-      return {
-        payments: paymentsWithUsers,
-        totalCount,
-      };
+      return { payments: paymentsWithUsers, totalCount };
     }),
 
-  // Lấy danh sách projects với filter và pagination
+  /**
+   * Danh sách projects — KHÔNG cache (có filter/pagination/search).
+   */
   getProjects: protectedProcedure
     .input(
       z.object({
@@ -149,40 +165,19 @@ export const adminRouter = createTRPCRouter({
     .query(async ({ input }) => {
       await requireAdmin();
 
-      // Build where clause
       interface ProjectWhereInput {
-        name?: {
-          contains: string;
-          mode: "insensitive";
-        };
+        name?: { contains: string; mode: "insensitive" };
         userId?: string;
-        createdAt?: {
-          gte?: Date;
-          lte?: Date;
-        };
+        createdAt?: { gte?: Date; lte?: Date };
       }
-      
+
       const where: ProjectWhereInput = {};
-
-      if (input.search) {
-        where.name = {
-          contains: input.search,
-          mode: "insensitive",
-        };
-      }
-
-      if (input.userId) {
-        where.userId = input.userId;
-      }
-
+      if (input.search) where.name = { contains: input.search, mode: "insensitive" };
+      if (input.userId) where.userId = input.userId;
       if (input.dateFrom || input.dateTo) {
         where.createdAt = {};
-        if (input.dateFrom) {
-          where.createdAt.gte = input.dateFrom;
-        }
-        if (input.dateTo) {
-          where.createdAt.lte = input.dateTo;
-        }
+        if (input.dateFrom) where.createdAt.gte = input.dateFrom;
+        if (input.dateTo) where.createdAt.lte = input.dateTo;
       }
 
       const [projects, totalCount] = await Promise.all([
@@ -197,15 +192,12 @@ export const adminRouter = createTRPCRouter({
             userId: true,
             createdAt: true,
             updatedAt: true,
-            _count: {
-              select: { messages: true },
-            },
+            _count: { select: { messages: true } },
           },
         }),
         db.project.count({ where }),
       ]);
 
-      // Lấy thông tin user từ Clerk cho mỗi project
       const client = await clerkClient();
       const projectsWithUser = await Promise.all(
         projects.map(async (project) => {
@@ -222,88 +214,80 @@ export const adminRouter = createTRPCRouter({
               },
             };
           } catch {
-            return {
-              ...project,
-              user: null,
-            };
+            return { ...project, user: null };
           }
         })
       );
 
-      return {
-        projects: projectsWithUser,
-        totalCount,
-      };
+      return { projects: projectsWithUser, totalCount };
     }),
 
-  // Lấy dữ liệu biểu đồ projects theo thời gian
+  /**
+   * Biểu đồ projects theo thời gian — cache 5 phút.
+   * Cache key bao gồm số ngày: "admin:chart:{days}"
+   */
   getProjectsChart: protectedProcedure
-    .input(
-      z.object({
-        days: z.number().min(7).max(90).default(30),
-      })
-    )
+    .input(z.object({ days: z.number().min(7).max(90).default(30) }))
     .query(async ({ input }) => {
       await requireAdmin();
 
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - input.days);
+      return withCache(
+        CACHE_KEYS.adminChart(input.days),
+        async () => {
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - input.days);
 
-      const projects = await db.project.groupBy({
-        by: ["createdAt"],
-        _count: true,
-        where: {
-          createdAt: {
-            gte: startDate,
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-
-      // Group by date
-      interface ChartDataItem {
-        date: string;
-        count: number;
-      }
-      
-      const chartData = projects.reduce((acc: ChartDataItem[], project) => {
-        const date = project.createdAt.toISOString().split("T")[0];
-        const existing = acc.find((item) => item.date === date);
-
-        if (existing) {
-          existing.count += project._count;
-        } else {
-          acc.push({
-            date,
-            count: project._count,
+          const projects = await db.project.groupBy({
+            by: ["createdAt"],
+            _count: true,
+            where: { createdAt: { gte: startDate } },
+            orderBy: { createdAt: "asc" },
           });
-        }
 
-        return acc;
-      }, []);
+          interface ChartDataItem { date: string; count: number }
 
-      return chartData;
+          return projects.reduce((acc: ChartDataItem[], project) => {
+            const date = project.createdAt.toISOString().split("T")[0];
+            const existing = acc.find((item) => item.date === date);
+            if (existing) {
+              existing.count += project._count;
+            } else {
+              acc.push({ date, count: project._count });
+            }
+            return acc;
+          }, []);
+        },
+        { ttl: TTL.LONG }
+      );
     }),
 
-  // Lấy thống kê messages theo type
+  /**
+   * Thống kê messages theo type — cache 5 phút.
+   */
   getMessagesStats: protectedProcedure.query(async () => {
     await requireAdmin();
 
-    const messagesByType = await db.message.groupBy({
-      by: ["type", "role"],
-      _count: true,
-    });
+    return withCache(
+      CACHE_KEYS.adminMessagesStats(),
+      async () => {
+        const messagesByType = await db.message.groupBy({
+          by: ["type", "role"],
+          _count: true,
+        });
 
-    return messagesByType.map((item) => ({
-      type: item.type,
-      role: item.role,
-      count: item._count,
-    }));
+        return messagesByType.map((item) => ({
+          type: item.type,
+          role: item.role,
+          count: item._count,
+        }));
+      },
+      { ttl: TTL.LONG }
+    );
   }),
 
-  // Lấy danh sách users từ Clerk
+  /**
+   * Danh sách users — KHÔNG cache (có filter/pagination/search).
+   */
   getUsers: protectedProcedure
     .input(
       z.object({
@@ -319,33 +303,16 @@ export const adminRouter = createTRPCRouter({
       await requireAdmin();
 
       const client = await clerkClient();
-      
-      // Build query params for Clerk
-      interface ClerkQueryParams {
-        limit: number;
-        offset: number;
-        query?: string;
-      }
-      
-      const queryParams: ClerkQueryParams = {
-        limit: 500, // Lấy nhiều để filter phía server
-        offset: 0,
-      };
 
-      // Nếu có search query, thêm vào params
-      if (input.search) {
-        queryParams.query = input.search;
-      }
+      interface ClerkQueryParams { limit: number; offset: number; query?: string }
+      const queryParams: ClerkQueryParams = { limit: 500, offset: 0 };
+      if (input.search) queryParams.query = input.search;
 
       const response = await client.users.getUserList(queryParams);
 
-      // Lấy thống kê projects cho mỗi user
       let usersWithStats = await Promise.all(
         response.data.map(async (user) => {
-          const projectCount = await db.project.count({
-            where: { userId: user.id },
-          });
-
+          const projectCount = await db.project.count({ where: { userId: user.id } });
           return {
             id: user.id,
             email: user.emailAddresses[0]?.emailAddress || "",
@@ -359,127 +326,107 @@ export const adminRouter = createTRPCRouter({
         })
       );
 
-      // Filter by role
       if (input.role && input.role !== "all") {
-        usersWithStats = usersWithStats.filter(user => user.role === input.role);
+        usersWithStats = usersWithStats.filter((u) => u.role === input.role);
       }
-
-      // Filter by date range
       if (input.dateFrom) {
         usersWithStats = usersWithStats.filter(
-          user => new Date(user.createdAt) >= input.dateFrom!
+          (u) => new Date(u.createdAt) >= input.dateFrom!
         );
       }
       if (input.dateTo) {
         usersWithStats = usersWithStats.filter(
-          user => new Date(user.createdAt) <= input.dateTo!
+          (u) => new Date(u.createdAt) <= input.dateTo!
         );
       }
 
-      // Sort by creation date (newest first)
-      usersWithStats.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      usersWithStats.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      // Apply pagination after filtering
       const totalCount = usersWithStats.length;
-      const paginatedUsers = usersWithStats.slice(
-        input.offset,
-        input.offset + input.limit
-      );
+      const paginatedUsers = usersWithStats.slice(input.offset, input.offset + input.limit);
 
-      return {
-        users: paginatedUsers,
-        totalCount,
-      };
+      return { users: paginatedUsers, totalCount };
     }),
 
-  // Update user role
+  /**
+   * Update user role — invalidate admin cache sau khi thay đổi.
+   */
   updateUserRole: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-        role: z.enum(["admin", "user"]),
-      })
-    )
+    .input(z.object({ userId: z.string(), role: z.enum(["admin", "user"]) }))
     .mutation(async ({ input }) => {
       await requireAdmin();
 
       const client = await clerkClient();
       await client.users.updateUserMetadata(input.userId, {
-        publicMetadata: {
-          role: input.role,
-        },
+        publicMetadata: { role: input.role },
       });
+
+      // Invalidate tất cả admin cache vì stats có thể thay đổi
+      await invalidateCacheByPattern("admin:*");
 
       return { success: true };
     }),
 
-  // Delete user
+  /**
+   * Delete user — invalidate admin cache sau khi xóa.
+   */
   deleteUser: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
+    .input(z.object({ userId: z.string() }))
     .mutation(async ({ input }) => {
       await requireAdmin();
 
-      // Xóa tất cả projects của user
-      await db.project.deleteMany({
-        where: { userId: input.userId },
-      });
+      await db.project.deleteMany({ where: { userId: input.userId } });
 
-      // Xóa user trong Clerk
       const client = await clerkClient();
       await client.users.deleteUser(input.userId);
+
+      // Invalidate tất cả admin cache
+      await invalidateCacheByPattern("admin:*");
 
       return { success: true };
     }),
 
-  // Lấy user activity (projects created over time)
+  /**
+   * User activity chart — cache 5 phút.
+   * Gọi Clerk API lấy toàn bộ users → rất chậm nếu không cache.
+   */
   getUserActivity: protectedProcedure
-    .input(
-      z.object({
-        days: z.number().min(7).max(90).default(30),
-      })
-    )
+    .input(z.object({ days: z.number().min(7).max(90).default(30) }))
     .query(async ({ input }) => {
       await requireAdmin();
 
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - input.days);
+      return withCache(
+        CACHE_KEYS.adminUserActivity(input.days),
+        async () => {
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - input.days);
 
-      // Lấy số lượng users mới theo ngày (từ Clerk)
-      const client = await clerkClient();
-      const allUsers = await client.users.getUserList({
-        limit: 500,
-      });
+          const client = await clerkClient();
+          const allUsers = await client.users.getUserList({ limit: 500 });
 
-      interface UserActivityItem {
-        date: string;
-        newUsers: number;
-      }
+          interface UserActivityItem { date: string; newUsers: number }
 
-      const usersByDate = allUsers.data.reduce((acc: UserActivityItem[], user) => {
-        const date = new Date(user.createdAt).toISOString().split("T")[0];
-        const existing = acc.find((item) => item.date === date);
+          const usersByDate = allUsers.data.reduce(
+            (acc: UserActivityItem[], user) => {
+              const date = new Date(user.createdAt).toISOString().split("T")[0];
+              const existing = acc.find((item) => item.date === date);
+              if (existing) {
+                existing.newUsers += 1;
+              } else {
+                acc.push({ date, newUsers: 1 });
+              }
+              return acc;
+            },
+            []
+          );
 
-        if (existing) {
-          existing.newUsers += 1;
-        } else {
-          acc.push({
-            date,
-            newUsers: 1,
-          });
-        }
-
-        return acc;
-      }, []);
-
-      // Filter by date range and sort
-      return usersByDate
-        .filter((item) => new Date(item.date) >= startDate)
-        .sort((a, b) => a.date.localeCompare(b.date));
+          return usersByDate
+            .filter((item) => new Date(item.date) >= startDate)
+            .sort((a, b) => a.date.localeCompare(b.date));
+        },
+        { ttl: TTL.LONG }
+      );
     }),
 });

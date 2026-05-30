@@ -18,6 +18,7 @@ Uside Vibe is a full-stack serverless application built with Next.js that lets y
 - **📊 Billing Dashboard**: Users can view account, credits, and payment history
 - **🎨 Beautiful UI**: Modern interface built with shadcn/ui components
 - **💾 Persistent Storage**: PostgreSQL database for projects and chat history
+- **⚡ Redis Caching**: In-memory caching for rate limiting, usage status, and admin analytics
 
 ## 🏗️ Architecture Overview
 
@@ -65,6 +66,14 @@ Uside Vibe uses a **hybrid serverless architecture** with distributed execution:
 │  Data Layer (PostgreSQL + Prisma)          │
 │  • Projects, Messages, Credits, Payments   │
 │  • Image metadata storage                  │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  Cache Layer (Redis)                        │
+│  • Rate limiting (RateLimiterRedis)         │
+│  • Usage status cache (10s TTL)             │
+│  • Admin dashboard cache (5min TTL)         │
+│  • Payment idempotency keys (24h TTL)       │
 └─────────────────────────────────────────────┘
 ```
 
@@ -125,6 +134,7 @@ sequenceDiagram
 - **API Layer**: tRPC (type-safe APIs)
 - **Database**: PostgreSQL
 - **ORM**: Prisma
+- **Cache / Rate Limiter**: Redis (ioredis)
 - **Authentication**: Clerk
 - **Payments**: PayOS
 - **Background Jobs**: Inngest
@@ -142,6 +152,7 @@ sequenceDiagram
 
 - Node.js 20 or higher
 - PostgreSQL database
+- Redis (local: `redis://localhost:6379` | production: Upstash `rediss://...`)
 - OpenAI API key
 - E2B API key
 - Inngest account (free tier available)
@@ -190,6 +201,11 @@ PAYOS_CLIENT_ID="..."
 PAYOS_API_KEY="..."
 PAYOS_CHECKSUM_KEY="..."
 
+# Redis
+# Local:      redis://localhost:6379
+# Production: rediss://:password@host:port  (Upstash / Redis Cloud)
+REDIS_URL="redis://localhost:6379"
+
 # Site URL (for production)
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_SITE_URL="https://vibe.uside.studio"
@@ -207,13 +223,22 @@ npx prisma migrate dev
 npm run db:seed
 ```
 
-5. **Build the E2B sandbox template**:
+5. **Start Redis** (local development):
+```bash
+# Docker (recommended)
+docker run -d -p 6379:6379 redis:alpine
+
+# macOS Homebrew
+brew install redis && brew services start redis
+```
+
+6. **Build the E2B sandbox template**:
 ```bash
 cd sandbox-templates/nextjs
 e2b template build --name uside-vibe-test-2
 ```
 
-6. **Start the development server**:
+7. **Start the development server**:
 ```bash
 npm run dev
 ```
@@ -285,7 +310,9 @@ uside-vibe/
 │   │       └── billing.ts   # Billing summary
 │   ├── lib/
 │   │   ├── db.ts            # Prisma client
-│   │   ├── usage.ts         # Free/paid credit consumption
+│   │   ├── redis.ts         # Redis client singleton (ioredis)
+│   │   ├── redis-cache.ts   # Cache helpers: withCache, invalidateCache, TTL constants
+│   │   ├── usage.ts         # Free/paid credit consumption + RateLimiterRedis
 │   │   ├── payos.ts         # PayOS SDK client
 │   │   ├── payments/        # Credit pack and payment utilities
 │   │   ├── metadata.ts      # SEO helpers
@@ -428,18 +455,30 @@ Make sure to set all variables from `.env.local` in your deployment platform.
 - Use hosted PostgreSQL (e.g., Neon, Supabase, Railway)
 - Run migrations: `npx prisma migrate deploy`
 
+### Redis
+
+- Use [Upstash](https://upstash.com) (serverless Redis, free tier: 10K req/day)
+- Create a database → copy the `rediss://` URL → add as `REDIS_URL` in Vercel environment variables
+- The client auto-detects `rediss://` and enables TLS + serverless-optimized settings
+
 ### E2B Sandbox
 
 Production sandboxes are automatically managed by E2B.
 
 ## 📊 Usage Tracking
 
-The app uses a credit system:
+The app uses a two-tier credit system backed by Redis:
+
 - Each prompt consumes 1 credit
-- Free users receive 30 free credits that reset every 30 days
-- Paid credits are purchased through PayOS, stack across purchases, and do not reset
+- **Paid credits** are purchased through PayOS, stack across purchases, and do not reset
+- **Free credits**: 30 per user, reset every 30 days
 - Paid credits are consumed before free credits
 - When paid credits reach 0, the user automatically falls back to the free quota
+
+**Redis role in usage tracking:**
+- Rate limiting uses `RateLimiterRedis` (in-memory, ~10x faster than the previous PostgreSQL-based limiter)
+- `getUsageStatus()` results are cached per-user with a 10-second TTL to reduce DB queries
+- Cache is invalidated immediately after each `consumeCredits()` call
 
 Users can view credit balance and payment history at `/billing`. Admins can view PayOS payment logs in `/admin`.
 
@@ -449,7 +488,8 @@ Users can view credit balance and payment history at `/billing`. Admins can view
 - **API Protection**: All tRPC procedures check auth
 - **Sandboxing**: Code runs isolated from main system
 - **File Upload**: Validated, size-limited, base64 encoded
-- **Rate Limiting**: Built into Inngest and OpenAI
+- **Rate Limiting**: Redis-backed `RateLimiterRedis` per user ID
+- **Idempotency**: PayOS webhook uses Redis flags to prevent double-processing
 
 ## 🤝 Contributing
 
@@ -500,6 +540,8 @@ MIT License - feel free to use this project for learning or commercial purposes.
 - [Clerk](https://clerk.com/docs) - Authentication
 - [PayOS](https://payos.vn/docs/) - Payments
 - [shadcn/ui](https://ui.shadcn.com) - UI components
+- [ioredis](https://github.com/redis/ioredis) - Redis client
+- [Upstash](https://upstash.com/docs/redis/overall/getstarted) - Serverless Redis (production)
 
 ### Related Projects
 - [v0.dev](https://v0.dev) - Vercel's AI UI generator

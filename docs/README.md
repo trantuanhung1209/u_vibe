@@ -52,10 +52,11 @@ Comprehensive API documentation for tRPC and REST endpoints:
 High-level and detailed architecture documentation:
 - Component diagrams
 - Data flow sequences
-- Technology stack breakdown
+- Technology stack breakdown (bao gồm Redis)
 - Module organization
-- Deployment architecture
-- Security layers
+- Deployment architecture (Vercel + Upstash)
+- Security layers (bao gồm Redis rate limiting)
+- Redis caching table (key, TTL, mục đích)
 - Scaling considerations
 
 **Use this when:**
@@ -63,6 +64,26 @@ High-level and detailed architecture documentation:
 - Making architectural decisions
 - Onboarding new developers
 - Planning infrastructure changes
+
+---
+
+### [REDIS.md](./REDIS.md)
+**Redis Integration Guide**
+
+Tài liệu chuyên sâu về cách Redis được áp dụng trong dự án:
+- Lý do chọn Redis và vấn đề giải quyết
+- 4 use cases: Rate Limiting, Usage Cache, Admin Cache, Idempotency
+- Cấu trúc key và TTL cho từng use case
+- Flow diagram cache-aside pattern
+- Redis commands được dùng
+- Setup local (Docker/Homebrew) và production (Upstash)
+- Debugging commands
+
+**Use this when:**
+- Tìm hiểu Redis trong dự án thực tế
+- Debug cache hoặc rate limiting issues
+- Setup Redis cho môi trường mới
+- Thêm use case Redis mới
 
 ---
 
@@ -235,10 +256,11 @@ Week 7-8 (Feb 12-25, 2026)
 
 | Document | Last Updated | Status |
 |----------|-------------|--------|
-| README.md | May 18, 2026 | ✅ Current |
+| README.md | May 30, 2026 | ✅ Current |
 | DATABASE-SCHEMA.md | May 18, 2026 | ✅ Current |
 | API-SPEC.md | May 18, 2026 | ✅ Current |
-| ARCHITECTURE.md | May 18, 2026 | ✅ Current |
+| ARCHITECTURE.md | May 30, 2026 | ✅ Current |
+| REDIS.md | May 30, 2026 | ✅ Current |
 | SPRINT-01.md | Jan 14, 2026 | ✅ Final |
 | SPRINT-02.md | Jan 28, 2026 | ✅ Final |
 | SPRINT-03.md | Feb 11, 2026 | ✅ Final |
@@ -261,5 +283,5 @@ Week 7-8 (Feb 12-25, 2026)
 
 ---
 
-**Last Updated:** May 18, 2026  
+**Last Updated:** May 30, 2026  
 **Maintained By:** [@trantuanhung1209](https://github.com/trantuanhung1209)

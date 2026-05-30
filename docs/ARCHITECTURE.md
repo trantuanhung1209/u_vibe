@@ -27,6 +27,7 @@ graph TB
     subgraph "External Services"
         K[Clerk Auth]
         L[PostgreSQL DB]
+        R[Redis Cache]
         M[Inngest Platform]
         N[OpenAI API]
         O[E2B Sandboxes]
@@ -47,8 +48,10 @@ graph TB
     H --> L
     I --> L
     J --> L
+    J --> R
     P --> L
     P --> Q
+    P --> R
     I --> M
     H --> M
     M --> N
@@ -58,6 +61,7 @@ graph TB
     style A fill:#e1f5ff
     style K fill:#ffe1e1
     style L fill:#e1ffe1
+    style R fill:#fff0b3
     style M fill:#fff4e1
     style N fill:#f0e1ff
     style O fill:#ffe1f0
@@ -134,6 +138,13 @@ graph TB
 │  │              - Client Instance                       │  │
 │  │              - Type-safe Queries                     │  │
 │  └────────────────────────────┬──────────────────────────┘  │
+│                               │                              │
+│  ┌────────────────────────────▼──────────────────────────┐  │
+│  │         Redis (src/lib/redis.ts + redis-cache.ts)    │  │
+│  │         - RateLimiterRedis (usage/rate limiting)     │  │
+│  │         - withCache() — usage status, admin stats    │  │
+│  │         - setFlag() — PayOS idempotency keys         │  │
+│  └────────────────────────────┬──────────────────────────┘  │
 └───────────────────────────────┼─────────────────────────────┘
                                 │
 ┌───────────────────────────────▼─────────────────────────────┐
@@ -142,6 +153,21 @@ graph TB
 │  │ Project  │  │ Message  │  │ Fragment │  │  Usage   │   │
 │  │CreditBal │  │CreditPay │  │          │  │          │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                      REDIS                                  │
+│  ┌──────────────────────┐  ┌──────────────────────────┐    │
+│  │  Rate Limiter        │  │  Cache                   │    │
+│  │  key: rlflx:{userId} │  │  usage:status:{userId}   │    │
+│  │  TTL: 30 days        │  │  TTL: 10s                │    │
+│  └──────────────────────┘  ├──────────────────────────┤    │
+│                             │  admin:stats             │    │
+│  ┌──────────────────────┐  │  admin:chart:{days}      │    │
+│  │  Idempotency Flags   │  │  admin:messages:stats    │    │
+│  │  payos:processed:*   │  │  admin:activity:{days}   │    │
+│  │  TTL: 24h            │  │  TTL: 5 min              │    │
+│  └──────────────────────┘  └──────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
@@ -329,8 +355,10 @@ src/
 │
 ├── lib/                 # Utilities
 │   ├── db.ts           # Prisma client singleton
+│   ├── redis.ts        # Redis client singleton (ioredis)
+│   ├── redis-cache.ts  # Cache helpers: withCache, invalidateCache, TTL, CACHE_KEYS
 │   ├── metadata.ts     # SEO helpers
-│   ├── usage.ts        # Credit management
+│   ├── usage.ts        # Credit management + RateLimiterRedis
 │   ├── payos.ts        # PayOS SDK client
 │   ├── payments/       # Credit pack and payment utilities
 │   └── utils.ts        # General utils
@@ -368,6 +396,7 @@ Node.js 20+
 ├── tRPC 11.x (API Layer)
 ├── Prisma 6.x (ORM)
 ├── PostgreSQL 16 (Database)
+├── Redis / ioredis 5.x (Cache + Rate Limiter)
 ├── Clerk (Authentication)
 ├── PayOS (Payments)
 └── Next.js API Routes (REST)
@@ -377,6 +406,7 @@ Node.js 20+
 ```
 Serverless
 ├── Vercel (Hosting)
+├── Upstash Redis (Cache + Rate Limiter — serverless Redis)
 ├── Inngest (Background Jobs)
 ├── E2B (Code Sandboxes)
 ├── PayOS (Credit Checkout)
@@ -405,12 +435,12 @@ Serverless
 │  └─────────────┘  └─────────────┘  └─────────────┘    │
 └─────────────────┬───────────────────────────────────────┘
                   │
-        ┌─────────┼─────────┐
-        │         │         │
-┌───────▼────┐ ┌──▼──────┐ ┌▼────────────┐ ┌──────────┐
-│ PostgreSQL │ │ Inngest │ │    Clerk    │ │  PayOS   │
-│  (Neon)    │ │ Platform│ │   (Auth)    │ │ Payments │
-└────────────┘ └────┬────┘ └─────────────┘ └──────────┘
+        ┌─────────┼──────────────┐
+        │         │              │
+┌───────▼────┐ ┌──▼──────┐ ┌────▼────────┐ ┌──────────┐ ┌──────────────┐
+│ PostgreSQL │ │ Inngest │ │    Clerk    │ │  PayOS   │ │   Upstash    │
+│  (Neon)    │ │ Platform│ │   (Auth)    │ │ Payments │ │    Redis     │
+└────────────┘ └────┬────┘ └─────────────┘ └──────────┘ └──────────────┘
                     │
               ┌─────┴─────┐
               │           │
@@ -450,7 +480,11 @@ Serverless
 │     ✓ Protected Procedures             │
 │     ✓ PayOS webhook signature verify   │
 │                                         │
-│  5. Database (Prisma)                  │
+│  5. Redis Layer                        │
+│     ✓ Rate Limiting (RateLimiterRedis) │
+│     ✓ Idempotency (PayOS webhooks)     │
+│                                         │
+│  6. Database (Prisma)                  │
 │     ✓ Parameterized Queries            │
 │     ✓ Connection Pooling               │
 │     ✓ Row-Level Security               │
@@ -481,8 +515,20 @@ Serverless
 ### Scaling Strategy
 1. **Horizontal**: Add more Vercel functions (auto-scales)
 2. **Database**: Connection pooling + read replicas
-3. **Caching**: Redis for session/usage data
+3. **Caching**: Redis for rate limiting, usage status, and admin analytics (already implemented)
 4. **Queue**: Inngest handles async scaling
+
+### Redis Caching Details
+
+| Cache Key | TTL | Purpose |
+|-----------|-----|---------|
+| `rlflx:{userId}` | 30 days | Free credit rate limiter (RateLimiterRedis) |
+| `usage:status:{userId}` | 10 seconds | Usage status per user |
+| `admin:stats` | 5 minutes | Admin overview stats |
+| `admin:chart:{days}` | 5 minutes | Projects chart data |
+| `admin:messages:stats` | 5 minutes | Messages stats |
+| `admin:activity:{days}` | 5 minutes | User activity chart |
+| `payos:processed:{orderCode}` | 24 hours | PayOS webhook idempotency |
 
 ---
 
