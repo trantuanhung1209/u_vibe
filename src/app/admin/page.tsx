@@ -19,6 +19,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RedisDebugPanel } from "@/components/admin/redis-debug-panel";
 
 export default function AdminDashboard() {
   const api = useTRPC();
@@ -162,6 +163,9 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Redis Debug Panel */}
+      <RedisDebugPanel />
     </div>
   );
 }
