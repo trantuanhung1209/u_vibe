@@ -1,3 +1,16 @@
+/**
+ * Next.js 16 Proxy (trước đây là middleware.ts)
+ *
+ * Next.js 16 đổi tên convention: middleware.ts → proxy.ts
+ * Chức năng hoàn toàn giống nhau, chỉ khác tên file và export name.
+ *
+ * Thay đổi:
+ * - File: src/middleware.ts → src/proxy.ts
+ * - Export: `export default` → `export { proxy as default }` hoặc `export { proxy }`
+ *
+ * Clerk vẫn dùng clerkMiddleware() — API không thay đổi.
+ */
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ClerkSessionClaims } from "@/types/roles";
@@ -7,14 +20,12 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-up(.*)",
   "/api(.*)",
-  "/pricing"
+  "/pricing",
 ]);
 
-const isAdminRoute = createRouteMatcher([
-  "/admin(.*)",
-]);
+const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
-export default clerkMiddleware(async (auth, req) => {
+export const proxy = clerkMiddleware(async (auth, req) => {
   // Kiểm tra nếu là route public thì cho qua
   if (isPublicRoute(req)) {
     return NextResponse.next();
@@ -27,7 +38,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (isAdminRoute(req)) {
     const { sessionClaims } = await auth();
     const role = (sessionClaims as ClerkSessionClaims)?.metadata?.role;
-    
+
     // Chỉ admin mới được truy cập
     if (role !== "admin") {
       return NextResponse.redirect(new URL("/", req.url));
@@ -36,6 +47,8 @@ export default clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 });
+
+export default proxy;
 
 export const config = {
   matcher: [
