@@ -83,21 +83,28 @@ export async function withCache<T>(
   const { ttl = TTL.MEDIUM } = options;
 
   // 1. Thử lấy từ cache
-  const cached = await redis.get(key);
+  // Bọc trong try/catch: nếu Redis lỗi (timeout, connection refused, sai URL)
+  // thì fallback về fetchFn thay vì throw — đảm bảo app vẫn hoạt động
+  try {
+    const cached = await redis.get(key);
 
-  if (cached !== null) {
-    // Cache hit: parse JSON và trả về
-    // console.log(`[Cache HIT] ${key}`);
-    return JSON.parse(cached) as T;
+    if (cached !== null) {
+      return JSON.parse(cached) as T;
+    }
+  } catch (err) {
+    // Redis không available → bỏ qua cache, lấy thẳng từ DB
+    console.warn(`[Cache] Redis GET failed for "${key}", falling back to DB:`, (err as Error).message);
   }
 
-  // Cache miss: gọi hàm lấy dữ liệu thật
-  // console.log(`[Cache MISS] ${key}`);
+  // 2. Cache miss hoặc Redis lỗi → gọi hàm lấy dữ liệu thật
   const data = await fetchFn();
 
-  // Lưu vào Redis với TTL
-  // JSON.stringify vì Redis chỉ lưu string
-  await redis.set(key, JSON.stringify(data), "EX", ttl);
+  // 3. Thử lưu vào Redis — nếu lỗi thì bỏ qua, không ảnh hưởng response
+  try {
+    await redis.set(key, JSON.stringify(data), "EX", ttl);
+  } catch (err) {
+    console.warn(`[Cache] Redis SET failed for "${key}":`, (err as Error).message);
+  }
 
   return data;
 }
@@ -110,73 +117,57 @@ export async function withCache<T>(
  * await invalidateCache(CACHE_KEYS.usageStatus(userId));
  */
 export async function invalidateCache(key: string): Promise<void> {
-  await redis.del(key);
+  try {
+    await redis.del(key);
+  } catch (err) {
+    console.warn(`[Cache] Redis DEL failed for "${key}":`, (err as Error).message);
+  }
 }
 
-/**
- * Xóa nhiều cache keys cùng lúc.
- *
- * @example
- * await invalidateCacheMany([
- *   CACHE_KEYS.adminStats(),
- *   CACHE_KEYS.adminChart(30),
- * ]);
- */
 export async function invalidateCacheMany(keys: string[]): Promise<void> {
   if (keys.length === 0) return;
-  // DEL nhận nhiều key cùng lúc — hiệu quả hơn gọi DEL nhiều lần
-  await redis.del(...keys);
+  try {
+    await redis.del(...keys);
+  } catch (err) {
+    console.warn(`[Cache] Redis DEL failed for keys:`, (err as Error).message);
+  }
 }
 
-/**
- * Xóa tất cả cache keys theo pattern.
- * Dùng SCAN thay vì KEYS để không block Redis ở production.
- *
- * @example
- * await invalidateCacheByPattern("admin:*");
- */
 export async function invalidateCacheByPattern(pattern: string): Promise<void> {
-  // SCAN cursor COUNT 100 MATCH pattern
-  // Duyệt qua tất cả keys theo từng batch, không block server
-  let cursor = "0";
-
-  do {
-    const [nextCursor, keys] = await redis.scan(
-      cursor,
-      "MATCH",
-      pattern,
-      "COUNT",
-      100
-    );
-    cursor = nextCursor;
-
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
-  } while (cursor !== "0");
+  try {
+    let cursor = "0";
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        "MATCH",
+        pattern,
+        "COUNT",
+        100
+      );
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== "0");
+  } catch (err) {
+    console.warn(`[Cache] Redis SCAN/DEL failed for pattern "${pattern}":`, (err as Error).message);
+  }
 }
 
-/**
- * Kiểm tra một key có tồn tại trong Redis không.
- * Dùng cho idempotency check.
- *
- * @example
- * const alreadyProcessed = await existsInCache("payos:processed:12345");
- */
 export async function existsInCache(key: string): Promise<boolean> {
-  // EXISTS trả về số lượng key tồn tại (0 hoặc 1)
-  const count = await redis.exists(key);
-  return count > 0;
+  try {
+    const count = await redis.exists(key);
+    return count > 0;
+  } catch (err) {
+    console.warn(`[Cache] Redis EXISTS failed for "${key}":`, (err as Error).message);
+    return false; // Fail-open: nếu Redis lỗi thì coi như chưa xử lý
+  }
 }
 
-/**
- * Set một key với TTL mà không cần giá trị phức tạp.
- * Dùng cho idempotency keys, flags, locks đơn giản.
- *
- * @example
- * await setFlag("payos:processed:12345", TTL.DAY);
- */
 export async function setFlag(key: string, ttl: number): Promise<void> {
-  // SET key "1" EX ttl
-  await redis.set(key, "1", "EX", ttl);
+  try {
+    await redis.set(key, "1", "EX", ttl);
+  } catch (err) {
+    console.warn(`[Cache] Redis SET flag failed for "${key}":`, (err as Error).message);
+  }
 }

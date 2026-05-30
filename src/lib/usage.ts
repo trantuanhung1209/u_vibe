@@ -61,14 +61,15 @@ export async function getUsageStatusForUser(userId: string) {
       const usageTracker = getUsageTracker();
 
       // Chạy song song: lấy rate limit status + credit balance
+      // usageTracker.get() có thể throw nếu Redis lỗi → bắt riêng
       const [result, creditBalance] = await Promise.all([
-        usageTracker.get(userId),
+        usageTracker.get(userId).catch(() => null), // Redis lỗi → coi như chưa dùng gì
         prisma.creditBalance.findUnique({ where: { userId } }),
       ]);
 
       const paidCredits = creditBalance?.credits ?? 0;
       const consumedFreePoints = result?.consumedPoints ?? 0;
-      const freeCredits = result?.remainingPoints ?? usageTracker.points;
+      const freeCredits = result?.remainingPoints ?? FREE_POINTS;
       const msBeforeNext = result?.msBeforeNext ?? CREDIT_DURATION * 1000;
 
       return {
@@ -81,7 +82,7 @@ export async function getUsageStatusForUser(userId: string) {
         isPro: paidCredits > 0,
       };
     },
-    { ttl: TTL.SHORT } // Cache 10 giây
+    { ttl: TTL.SHORT }
   );
 }
 
